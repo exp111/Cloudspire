@@ -32,7 +32,6 @@ export class MapComponent implements OnInit {
     app.resizeTo = this.mapRef.nativeElement;
     const graphics = new Graphics();
 
-    //this.mapRef.nativeElement.appendChild(app.canvas);
     this.renderer.appendChild(this.mapRef.nativeElement, app.canvas);
 
     grid.forEach(renderHex);
