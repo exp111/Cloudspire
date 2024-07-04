@@ -2,15 +2,16 @@ import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core
 import {NgOptimizedImage} from "@angular/common";
 import {defineHex, Grid, Hex, HexCoordinates, rectangle} from "honeycomb-grid";
 import * as PIXI from "pixi.js";
-import {PointData} from "pixi.js";
 import {Viewport} from "pixi-viewport";
 
 enum ZOrder {
   Background = 0,
-  Tiles = Background,
-  Fortress = Tiles,
-  HexOverlay = 1,
-  Chips = 2,
+  Tile = Background,
+  Fortress = Tile,
+  Earthscape = 1,
+  HexOverlay = 2,
+  CoordinateOverlay = 4,
+  Chip = 3,
 }
 
 @Component({
@@ -35,7 +36,7 @@ export class MapComponent implements OnInit {
     // you may want the origin to be the top left corner of a hex's bounding box
     // instead of its center (which is the default)
     const Hex = defineHex({ dimensions: hexSize, origin: "topLeft" });
-    const grid = new Grid(Hex, rectangle({ width: 10, height: 15 }));
+    const grid = new Grid(Hex, rectangle({ width: 9, height: 14 }));
 
     const app = new PIXI.Application();
     await app.init({ backgroundAlpha: 0 });
@@ -69,9 +70,23 @@ export class MapComponent implements OnInit {
       let hex = grid.getHex(hexPos)!;
       let sprite = await loadSpriteFromUrl(url);
       sprite.eventMode = "static";
-      sprite.zIndex = ZOrder.Tiles; // lowest z
+      sprite.zIndex = ZOrder.Tile; // lowest z
       sprite.angle = 30 + 60 * rotation;
       sprite.anchor.set(0.5); // center
+      sprite.position = {x: hex.x, y: hex.y};
+      // add to stage
+      viewport.addChild(sprite);
+      //TODO: click event?
+      return sprite;
+    }
+
+    async function createEarthscape(url: string, hexPos: HexCoordinates, rotation: number = 0) {
+      let hex = grid.getHex(hexPos)!;
+      let sprite = await loadSpriteFromUrl(url);
+      sprite.eventMode = "static";
+      sprite.zIndex = ZOrder.Earthscape;
+      sprite.angle = 60 * rotation;
+      sprite.anchor.set(0.5, 0.285); // center
       sprite.position = {x: hex.x, y: hex.y};
       // add to stage
       viewport.addChild(sprite);
@@ -84,7 +99,7 @@ export class MapComponent implements OnInit {
       let sprite = await loadSpriteFromUrl(url);
       // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
       sprite.scale = (hexSize * 1.5) / sprite.width;
-      sprite.zIndex = ZOrder.Chips;
+      sprite.zIndex = ZOrder.Chip;
       sprite.eventMode = "static";
       sprite.anchor.set(0.5);
       sprite.position = {x: hex.x, y: hex.y};
@@ -115,11 +130,13 @@ export class MapComponent implements OnInit {
     await createTile("assets/tiles/8.png", {col: 4, row: 2}, 1);
     await createTile("assets/tiles/4.png", {col: 6, row: 5}, 4);
     await createTile("assets/tiles/1.png", {col: 3, row: 6}, 2);
-    // sprite.onclick = (event) => {
-    //  sprite.texture = sprite.texture == tile1 ? tile2 : tile1;
-    // }
 
-    await createChip("assets/chips/awsh_front.png", {col: 0, row: 0});
+    await createEarthscape("assets/earthscapes/10.png", {col: 6, row: 1});
+    await createEarthscape("assets/earthscapes/13.png", {col: 5, row: 3}, 1);
+    await createEarthscape("assets/earthscapes/16.png", {col: 2, row: 9}, -1);
+    await createEarthscape("assets/earthscapes/15.png", {col: 5, row: 8}, 1);
+
+    await createChip("assets/chips/awsh_front.png", {col: 1, row: 7});
 
     function renderHex(hex: Hex) {
       graphics.poly(hex.corners);
@@ -131,7 +148,10 @@ export class MapComponent implements OnInit {
         position: {x: hex.x, y: hex.y},
         anchor: 0.5
       });
-      label.zIndex = ZOrder.Background;
+      label.zIndex = ZOrder.CoordinateOverlay;
+      label.style = {
+        fill: {color: 0xff0000},
+      };
       viewport.addChild(label);
       console.log(hex);
     }
