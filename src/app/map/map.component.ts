@@ -32,6 +32,7 @@ export class MapComponent implements OnInit {
   }
 
   async ngOnInit() {
+    const resourceBasePath = "assets";
     const hexSize = 154;
     // you may want the origin to be the top left corner of a hex's bounding box
     // instead of its center (which is the default)
@@ -66,9 +67,9 @@ export class MapComponent implements OnInit {
       let texture = await PIXI.Assets.load(url);
       return PIXI.Sprite.from(texture);
     }
-    async function createTile(url: string, hexPos: HexCoordinates, rotation: number = 0) {
+    async function createTile(tile: number, hexPos: HexCoordinates, rotation: number = 0) {
       let hex = grid.getHex(hexPos)!;
-      let sprite = await loadSpriteFromUrl(url);
+      let sprite = await loadSpriteFromUrl(`${resourceBasePath}/tile/${tile}.png`);
       sprite.eventMode = "static";
       sprite.zIndex = ZOrder.Tile; // lowest z
       sprite.angle = 30 + 60 * rotation;
@@ -80,9 +81,9 @@ export class MapComponent implements OnInit {
       return sprite;
     }
 
-    async function createEarthscape(url: string, hexPos: HexCoordinates, rotation: number = 0) {
+    async function createEarthscape(earthscape: number, hexPos: HexCoordinates, rotation: number = 0) {
       let hex = grid.getHex(hexPos)!;
-      let sprite = await loadSpriteFromUrl(url);
+      let sprite = await loadSpriteFromUrl(`${resourceBasePath}/earthscape/${earthscape}.png`);
       sprite.eventMode = "static";
       sprite.zIndex = ZOrder.Earthscape;
       sprite.angle = 60 * rotation;
@@ -94,9 +95,9 @@ export class MapComponent implements OnInit {
       return sprite;
     }
 
-    async function createChip(url: string, hexPos: HexCoordinates) {
+    async function createChip(name: string, hexPos: HexCoordinates) {
       let hex = grid.getHex(hexPos)!;
-      let sprite = await loadSpriteFromUrl(url);
+      let sprite = await loadSpriteFromUrl(`${resourceBasePath}/chip/${name}_front.png`);
       // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
       sprite.scale = (hexSize * 1.5) / sprite.width;
       sprite.zIndex = ZOrder.Chip;
@@ -110,9 +111,9 @@ export class MapComponent implements OnInit {
       return sprite;
     }
 
-    async function createFortress(url: string, hexPos: HexCoordinates, rotation: number = 0) {
+    async function createFortress(faction: string, hexPos: HexCoordinates, rotation: number = 0) {
       let hex = grid.getHex(hexPos)!;
-      let sprite = await loadSpriteFromUrl(url);
+      let sprite = await loadSpriteFromUrl(`${resourceBasePath}/fortress/${faction}.png`);
       sprite.eventMode = "static";
       sprite.zIndex = ZOrder.Fortress; // lowest z
       sprite.angle = 30 + 60 * rotation;
@@ -124,19 +125,19 @@ export class MapComponent implements OnInit {
       return sprite;
     }
 
-    await createFortress("assets/fortress/grovetenders.png", {col: 2, row: 2}, 1);
-    await createFortress("assets/fortress/brawnen.png", {col: 4, row: 10}, -1);
+    await createFortress("grovetenders", {col: 2, row: 2}, 1);
+    await createFortress("brawnen", {col: 4, row: 10}, -1);
 
-    await createTile("assets/tiles/8.png", {col: 4, row: 2}, 1);
-    await createTile("assets/tiles/4.png", {col: 6, row: 5}, 4);
-    await createTile("assets/tiles/1.png", {col: 3, row: 6}, 2);
+    await createTile(8, {col: 4, row: 2}, 1);
+    await createTile(4, {col: 6, row: 5}, 4);
+    await createTile(1, {col: 3, row: 6}, 2);
 
-    await createEarthscape("assets/earthscapes/10.png", {col: 6, row: 1});
-    await createEarthscape("assets/earthscapes/13.png", {col: 5, row: 3}, 1);
-    await createEarthscape("assets/earthscapes/16.png", {col: 2, row: 9}, -1);
-    await createEarthscape("assets/earthscapes/15.png", {col: 5, row: 8}, 1);
+    await createEarthscape(10, {col: 6, row: 1});
+    await createEarthscape(13, {col: 5, row: 3}, 1);
+    await createEarthscape(16, {col: 2, row: 9}, -1);
+    await createEarthscape(16, {col: 5, row: 8}, 1);
 
-    await createChip("assets/chips/awsh_front.png", {col: 1, row: 7});
+    await createChip("awsh", {col: 1, row: 7});
 
     function renderHex(hex: Hex) {
       graphics.poly(hex.corners);
