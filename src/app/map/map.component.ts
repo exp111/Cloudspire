@@ -1,13 +1,14 @@
 import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {NgOptimizedImage} from "@angular/common";
-import {defineHex, Grid, rectangle, Hex} from "honeycomb-grid";
+import {defineHex, Grid, Hex, rectangle} from "honeycomb-grid";
 import * as PIXI from "pixi.js";
-import {Viewport} from "pixi-viewport";
 import {PointData} from "pixi.js";
+import {Viewport} from "pixi-viewport";
 
 enum ZOrder {
   Background = 0,
-  Tiles = 0,
+  Tiles = Background,
+  Fortress = Tiles,
   HexOverlay = 1,
   Chips = 2,
 }
@@ -60,37 +61,58 @@ export class MapComponent implements OnInit {
     grid.forEach(renderHex);
     viewport.addChild(graphics);
 
-    async function createTile(url: string, pos: PointData) {
+    async function loadSpriteFromUrl(url: string) {
       let texture = await PIXI.Assets.load(url);
-      let sprite = PIXI.Sprite.from(texture);
+      return PIXI.Sprite.from(texture);
+    }
+    async function createTile(url: string, pos: PointData, rotation: number = 0) {
+      let sprite = await loadSpriteFromUrl(url);
       sprite.eventMode = "static";
       sprite.zIndex = ZOrder.Tiles; // lowest z
-      sprite.angle = 30;
+      sprite.angle = 30 + 60 * rotation;
       sprite.anchor.set(0.5); // center
       sprite.position = pos;
       // add to stage
       viewport.addChild(sprite);
+      //TODO: click event?
       return sprite;
     }
 
     async function createChip(url: string, pos: PointData) {
-      let chip = await PIXI.Assets.load(url);
-      let chipSprite = PIXI.Sprite.from(chip);
-      chipSprite.scale = (hexSize * 1.5) / chip.width;
-      chipSprite.zIndex = ZOrder.Chips;
-      chipSprite.eventMode = "static";
-      chipSprite.anchor.set(0.5);
-      chipSprite.position = pos;
-      viewport.addChild(chipSprite);
-      chipSprite.onclick = (_) => {
+      let sprite = await loadSpriteFromUrl(url);
+      // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
+      sprite.scale = (hexSize * 1.5) / sprite.width;
+      sprite.zIndex = ZOrder.Chips;
+      sprite.eventMode = "static";
+      sprite.anchor.set(0.5);
+      sprite.position = pos;
+      viewport.addChild(sprite);
+      sprite.onclick = (_) => {
         //TODO: outline
       };
+      return sprite;
+    }
+
+    async function createFortress(url: string, pos: PointData, rotation: number = 0) {
+      let sprite = await loadSpriteFromUrl(url);
+      sprite.eventMode = "static";
+      sprite.zIndex = ZOrder.Fortress; // lowest z
+      sprite.scale = 0.4; //TODO: scale to tiles
+      sprite.angle = 30 + 60 * rotation;
+      sprite.anchor.set(0.5, 0.16); // set center on the gate
+      sprite.position = pos;
+      // add to stage
+      viewport.addChild(sprite);
+      //TODO: click event?
+      return sprite;
     }
 
     let hex = grid.getHex({col: 2, row: 2})!;
-    let hex2 = grid.getHex({col: 5, row: 3})!;
-    await createTile("assets/tiles/1.png", {x: hex.x, y: hex.y});
-    await createTile("assets/tiles/2.png", {x: hex2.x, y: hex2.y});
+    let hex2 = grid.getHex({col: 5, row: 1})!;
+    await createTile("assets/tiles/1.png", {x: hex.x, y: hex.y}, 2);
+    await createTile("assets/tiles/4.png", {x: hex2.x, y: hex2.y}, 4);
+    let hex3 = grid.getHex({col: 3, row: 6})!;
+    await createFortress("assets/fortress/brawnen.png", {x: hex3.x, y: hex3.y}, -1);
     // sprite.onclick = (event) => {
     //  sprite.texture = sprite.texture == tile1 ? tile2 : tile1;
     // }
