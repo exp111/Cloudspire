@@ -3,6 +3,7 @@ import {NgOptimizedImage} from "@angular/common";
 import {defineHex, Grid, Hex, HexCoordinates, rectangle} from "honeycomb-grid";
 import * as PIXI from "pixi.js";
 import {Viewport} from "pixi-viewport";
+import {Sprite} from "pixi.js";
 
 enum ZOrder {
   Background = 0,
@@ -38,6 +39,8 @@ export class MapComponent implements OnInit {
     // instead of its center (which is the default)
     const Hex = defineHex({ dimensions: hexSize, origin: "topLeft" });
     const grid = new Grid(Hex, rectangle({ width: 9, height: 14 }));
+
+    let selectedChip: Sprite | null = null;
 
     const app = new PIXI.Application();
     await app.init({ backgroundAlpha: 0 });
@@ -105,8 +108,18 @@ export class MapComponent implements OnInit {
       sprite.anchor.set(0.5);
       sprite.position = {x: hex.x, y: hex.y};
       viewport.addChild(sprite);
-      sprite.onclick = (_) => {
-        //TODO: outline
+      sprite.onclick = (e) => {
+        //TODO: replace tint with outline
+
+        // remove tint
+        sprite.tint = 0xffffff;
+        if (selectedChip == sprite) {
+          // unselect if it was selected
+          selectedChip = null;
+        } else {
+          sprite.tint = sprite.tint == 0xff0000 ? 0x00ff00 : 0xff0000;
+          selectedChip = sprite;
+        }
       };
       return sprite;
     }
@@ -140,6 +153,7 @@ export class MapComponent implements OnInit {
     await createChip("awsh", {col: 1, row: 7});
 
     function renderHex(hex: Hex) {
+      //TODO: hover event
       graphics.poly(hex.corners);
       graphics.stroke({ width: 2, color: 0x000000 });
       graphics.circle(hex.x, hex.y, 2);
