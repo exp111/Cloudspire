@@ -26,4 +26,4 @@ jobs:
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@v4.6.1
       with:
-        FOLDER: dist/cloudspire
+        FOLDER: dist/cloudspire/browser
