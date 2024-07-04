@@ -11,8 +11,9 @@ enum ZOrder {
   Fortress = Tile,
   Earthscape = 1,
   HexOverlay = 2,
-  CoordinateOverlay = 4,
   Chip = 3,
+  CoordinateOverlay = 4,
+  HoverOverlay = 5,
 }
 
 @Component({
@@ -32,132 +33,92 @@ export class MapComponent implements OnInit {
 
   }
 
+  RESOURCE_BASE_PATH = "assets";
+  SPRITE_CHIP_WIDTH = 256;
+  SPRITE_CHIP_MULT = 1.5;
+  HEX_SIZE = 154;
+  WORLD_SIZE = 1000;
+
+  hexBuilder = defineHex({dimensions: this.HEX_SIZE, origin: "topLeft"});
+  grid!: Grid<Hex>;
+
+  app = new PIXI.Application();
+  viewport!: Viewport;
+  hexOverlay = new PIXI.Graphics();
+
+  selectedChip: Sprite | null = null;
+  fakeChip!: Sprite;
+
   async ngOnInit() {
-    const resourceBasePath = "assets";
-    const hexSize = 154;
-    // you may want the origin to be the top left corner of a hex's bounding box
-    // instead of its center (which is the default)
-    const Hex = defineHex({ dimensions: hexSize, origin: "topLeft" });
-    const grid = new Grid(Hex, rectangle({ width: 9, height: 14 }));
+    this.grid = new Grid(this.hexBuilder, rectangle({width: 9, height: 14}));
 
-    let selectedChip: Sprite | null = null;
+    // init app
+    await this.app.init({backgroundAlpha: 0});
+    this.app.resizeTo = this.mapRef.nativeElement;
+    this.renderer.appendChild(this.mapRef.nativeElement, this.app.canvas);
 
-    const app = new PIXI.Application();
-    await app.init({ backgroundAlpha: 0 });
-    app.resizeTo = this.mapRef.nativeElement;
-    this.renderer.appendChild(this.mapRef.nativeElement, app.canvas);
-    const viewport = new Viewport({
+    // init viewport
+    this.viewport = new Viewport({
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
-      worldWidth: 1000,
-      worldHeight: 1000,
+      worldWidth: this.WORLD_SIZE,
+      worldHeight: this.WORLD_SIZE,
       disableOnContextMenu: true,
 
-      events: app.renderer.events // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
+      events: this.app.renderer.events // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
     });
-    app.stage.addChild(viewport);
-    viewport
+    this.app.stage.addChild(this.viewport);
+    this.viewport
       .drag()
       .pinch()
       .wheel();
 
-    const graphics = new PIXI.Graphics();
-    graphics.zIndex = ZOrder.HexOverlay;
-    grid.forEach(renderHex);
-    viewport.addChild(graphics);
-
-    async function loadSpriteFromUrl(url: string) {
-      let texture = await PIXI.Assets.load(url);
-      return PIXI.Sprite.from(texture);
+    // Hover chip
+    //TODO: ideas:
+    // - like this, global mouse listener
+    // - global ticker that checks mouse pos
+    // - make single hex entities and listen on them
+    this.fakeChip = new Sprite({
+      scale: (this.HEX_SIZE * this.SPRITE_CHIP_MULT) / this.SPRITE_CHIP_WIDTH,
+      eventMode: "dynamic",
+      zIndex: ZOrder.HoverOverlay,
+      anchor: 0.5,
+      visible: false,
+      alpha: 0.5
+    });
+    this.fakeChip.onclick = () => {
+      if (!this.selectedChip) {
+        return;
+      }
+      let selected = this.selectedChip;
+      selected.position = this.fakeChip.position;
+      this.selectedChip = null;
+      this.onChipDeselected(selected);
     }
-    async function createTile(tile: number, hexPos: HexCoordinates, rotation: number = 0) {
-      let hex = grid.getHex(hexPos)!;
-      let sprite = await loadSpriteFromUrl(`${resourceBasePath}/tile/${tile}.png`);
-      sprite.eventMode = "static";
-      sprite.zIndex = ZOrder.Tile; // lowest z
-      sprite.angle = 30 + 60 * rotation;
-      sprite.anchor.set(0.5); // center
-      sprite.position = {x: hex.x, y: hex.y};
-      // add to stage
-      viewport.addChild(sprite);
-      //TODO: click event?
-      return sprite;
-    }
+    this.viewport.addChild(this.fakeChip);
+    this.viewport.onmouseover = (e) => {
+      if (!this.selectedChip) {
+        return;
+      }
 
-    async function createEarthscape(earthscape: number, hexPos: HexCoordinates, rotation: number = 0) {
-      let hex = grid.getHex(hexPos)!;
-      let sprite = await loadSpriteFromUrl(`${resourceBasePath}/earthscape/${earthscape}.png`);
-      sprite.eventMode = "static";
-      sprite.zIndex = ZOrder.Earthscape;
-      sprite.angle = 60 * rotation;
-      sprite.anchor.set(0.5, 0.285); // center
-      sprite.position = {x: hex.x, y: hex.y};
-      // add to stage
-      viewport.addChild(sprite);
-      //TODO: click event?
-      return sprite;
-    }
+      //TODO: fix "cache" lag when hovering over hex for the first time
+      let hex = this.grid.pointToHex(this.viewport.toWorld(e.screen), {allowOutside: false});
+      if (!hex) {
+        return;
+      }
 
-    async function createChip(name: string, hexPos: HexCoordinates) {
-      let hex = grid.getHex(hexPos)!;
-      let sprite = await loadSpriteFromUrl(`${resourceBasePath}/chip/${name}_front.png`);
-      // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
-      sprite.scale = (hexSize * 1.5) / sprite.width;
-      sprite.zIndex = ZOrder.Chip;
-      sprite.eventMode = "static";
-      sprite.anchor.set(0.5);
-      sprite.position = {x: hex.x, y: hex.y};
-      viewport.addChild(sprite);
-      sprite.onclick = (e) => {
-        //TODO: replace tint with outline
-
-        // remove tint
-        sprite.tint = 0xffffff;
-        if (selectedChip == sprite) {
-          // unselect if it was selected
-          selectedChip = null;
-        } else {
-          sprite.tint = sprite.tint == 0xff0000 ? 0x00ff00 : 0xff0000;
-          selectedChip = sprite;
-        }
-      };
-      return sprite;
+      //TODO: return if hex is equal to selectedchip?
+      this.fakeChip.visible = true;
+      this.fakeChip.position = {x: hex.x, y: hex.y};
     }
 
-    async function createFortress(faction: string, hexPos: HexCoordinates, rotation: number = 0) {
-      let hex = grid.getHex(hexPos)!;
-      let sprite = await loadSpriteFromUrl(`${resourceBasePath}/fortress/${faction}.png`);
-      sprite.eventMode = "static";
-      sprite.zIndex = ZOrder.Fortress; // lowest z
-      sprite.angle = 30 + 60 * rotation;
-      sprite.anchor.set(0.5, 0.155); // set center on the gate
-      sprite.position = {x: hex.x, y: hex.y};
-      // add to stage
-      viewport.addChild(sprite);
-      //TODO: click event?
-      return sprite;
-    }
-
-    await createFortress("grovetenders", {col: 2, row: 2}, 1);
-    await createFortress("brawnen", {col: 4, row: 10}, -1);
-
-    await createTile(8, {col: 4, row: 2}, 1);
-    await createTile(4, {col: 6, row: 5}, 4);
-    await createTile(1, {col: 3, row: 6}, 2);
-
-    await createEarthscape(10, {col: 6, row: 1});
-    await createEarthscape(13, {col: 5, row: 3}, 1);
-    await createEarthscape(16, {col: 2, row: 9}, -1);
-    await createEarthscape(16, {col: 5, row: 8}, 1);
-
-    await createChip("awsh", {col: 1, row: 7});
-
-    function renderHex(hex: Hex) {
-      //TODO: hover event
-      graphics.poly(hex.corners);
-      graphics.stroke({ width: 2, color: 0x000000 });
-      graphics.circle(hex.x, hex.y, 2);
-      graphics.fill({ color: 0xff0000 });
+    // Hex overlay
+    this.hexOverlay.zIndex = ZOrder.HexOverlay;
+    this.grid.forEach((hex) => {
+      this.hexOverlay.poly(hex.corners);
+      this.hexOverlay.stroke({width: 2, color: 0x000000});
+      this.hexOverlay.circle(hex.x, hex.y, 2);
+      this.hexOverlay.fill({color: 0xff0000});
       let label = new PIXI.Text({
         text: `${hex.col},${hex.row}`,
         position: {x: hex.x, y: hex.y},
@@ -167,9 +128,115 @@ export class MapComponent implements OnInit {
       label.style = {
         fill: {color: 0xff0000},
       };
-      viewport.addChild(label);
-      console.log(hex);
-    }
+      this.viewport.addChild(label);
+    });
+    this.viewport.addChild(this.hexOverlay);
+
+    // Build map
+    await this.createFortress("grovetenders", {col: 2, row: 2}, 1);
+    await this.createFortress("brawnen", {col: 4, row: 10}, -1);
+
+    await this.createTile(8, {col: 4, row: 2}, 1);
+    await this.createTile(4, {col: 6, row: 5}, 4);
+    await this.createTile(1, {col: 3, row: 6}, 2);
+
+    await this.createEarthscape(10, {col: 6, row: 1});
+    await this.createEarthscape(13, {col: 5, row: 3}, 1);
+    await this.createEarthscape(16, {col: 2, row: 9}, -1);
+    await this.createEarthscape(16, {col: 5, row: 8}, 1);
+
+    await this.createChip("awsh", {col: 1, row: 7});
+
+    //TODO: center/fit view?
+  }
+
+  //TODO: move these into getter/setters?
+  //TODO: replace tint with outline
+  // A chip is about to be selected
+  private onChipSelected(selected: Sprite) {
+    selected.tint = 0xff0000;
+    this.fakeChip.texture = selected.texture;
+  }
+
+  // A chip was deselected
+  private onChipDeselected(previouslySelected: Sprite) {
+    previouslySelected.tint = 0xFFFFFF;
+    this.fakeChip.visible = false;
+  }
+
+  // Helpers
+  private async loadSpriteFromUrl(url: string) {
+    let texture = await PIXI.Assets.load(url);
+    return PIXI.Sprite.from(texture);
+  }
+
+  private async createTile(tile: number, hexPos: HexCoordinates, rotation: number = 0) {
+    let hex = this.grid.getHex(hexPos)!;
+    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/tile/${tile}.png`);
+    sprite.eventMode = "static";
+    sprite.zIndex = ZOrder.Tile; // lowest z
+    sprite.angle = 30 + 60 * rotation;
+    sprite.anchor.set(0.5); // center
+    sprite.position = {x: hex.x, y: hex.y};
+    // add to stage
+    this.viewport.addChild(sprite);
+    //TODO: click event?
+    return sprite;
+  }
+
+  async createEarthscape(earthscape: number, hexPos: HexCoordinates, rotation: number = 0) {
+    let hex = this.grid.getHex(hexPos)!;
+    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/earthscape/${earthscape}.png`);
+    sprite.eventMode = "static";
+    sprite.zIndex = ZOrder.Earthscape;
+    sprite.angle = 60 * rotation;
+    sprite.anchor.set(0.5, 0.285); // center
+    sprite.position = {x: hex.x, y: hex.y};
+    // add to stage
+    this.viewport.addChild(sprite);
+    //TODO: click event?
+    return sprite;
+  }
+
+  private async createChip(name: string, hexPos: HexCoordinates) {
+    let hex = this.grid.getHex(hexPos)!;
+    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/chip/${name}_front.png`);
+    // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
+    sprite.scale = (this.HEX_SIZE * this.SPRITE_CHIP_MULT) / sprite.width;
+    sprite.zIndex = ZOrder.Chip;
+    sprite.eventMode = "static";
+    sprite.anchor.set(0.5);
+    sprite.position = {x: hex.x, y: hex.y};
+    this.viewport.addChild(sprite);
+    sprite.onclick = (e) => {
+      let selected = this.selectedChip;
+      if (selected == sprite) {
+        // unselect if it was selected
+        this.selectedChip = null;
+      } else {
+        this.onChipSelected(sprite);
+        this.selectedChip = sprite;
+      }
+      // send deselect event
+      if (selected != null) {
+        this.onChipDeselected(sprite);
+      }
+    };
+    return sprite;
+  }
+
+  private async createFortress(faction: string, hexPos: HexCoordinates, rotation: number = 0) {
+    let hex = this.grid.getHex(hexPos)!;
+    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/fortress/${faction}.png`);
+    sprite.eventMode = "static";
+    sprite.zIndex = ZOrder.Fortress; // lowest z
+    sprite.angle = 30 + 60 * rotation;
+    sprite.anchor.set(0.5, 0.155); // set center on the gate
+    sprite.position = {x: hex.x, y: hex.y};
+    // add to stage
+    this.viewport.addChild(sprite);
+    //TODO: click event?
+    return sprite;
   }
 
 }
