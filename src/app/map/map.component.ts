@@ -1,6 +1,6 @@
 import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {NgOptimizedImage} from "@angular/common";
-import {defineHex, Grid, Hex, rectangle} from "honeycomb-grid";
+import {defineHex, Grid, Hex, HexCoordinates, rectangle} from "honeycomb-grid";
 import * as PIXI from "pixi.js";
 import {PointData} from "pixi.js";
 import {Viewport} from "pixi-viewport";
@@ -35,7 +35,7 @@ export class MapComponent implements OnInit {
     // you may want the origin to be the top left corner of a hex's bounding box
     // instead of its center (which is the default)
     const Hex = defineHex({ dimensions: hexSize, origin: "topLeft" });
-    const grid = new Grid(Hex, rectangle({ width: 10, height: 10 }));
+    const grid = new Grid(Hex, rectangle({ width: 10, height: 15 }));
 
     const app = new PIXI.Application();
     await app.init({ backgroundAlpha: 0 });
@@ -65,27 +65,29 @@ export class MapComponent implements OnInit {
       let texture = await PIXI.Assets.load(url);
       return PIXI.Sprite.from(texture);
     }
-    async function createTile(url: string, pos: PointData, rotation: number = 0) {
+    async function createTile(url: string, hexPos: HexCoordinates, rotation: number = 0) {
+      let hex = grid.getHex(hexPos)!;
       let sprite = await loadSpriteFromUrl(url);
       sprite.eventMode = "static";
       sprite.zIndex = ZOrder.Tiles; // lowest z
       sprite.angle = 30 + 60 * rotation;
       sprite.anchor.set(0.5); // center
-      sprite.position = pos;
+      sprite.position = {x: hex.x, y: hex.y};
       // add to stage
       viewport.addChild(sprite);
       //TODO: click event?
       return sprite;
     }
 
-    async function createChip(url: string, pos: PointData) {
+    async function createChip(url: string, hexPos: HexCoordinates) {
+      let hex = grid.getHex(hexPos)!;
       let sprite = await loadSpriteFromUrl(url);
       // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
       sprite.scale = (hexSize * 1.5) / sprite.width;
       sprite.zIndex = ZOrder.Chips;
       sprite.eventMode = "static";
       sprite.anchor.set(0.5);
-      sprite.position = pos;
+      sprite.position = {x: hex.x, y: hex.y};
       viewport.addChild(sprite);
       sprite.onclick = (_) => {
         //TODO: outline
@@ -93,32 +95,31 @@ export class MapComponent implements OnInit {
       return sprite;
     }
 
-    async function createFortress(url: string, pos: PointData, rotation: number = 0) {
+    async function createFortress(url: string, hexPos: HexCoordinates, rotation: number = 0) {
+      let hex = grid.getHex(hexPos)!;
       let sprite = await loadSpriteFromUrl(url);
       sprite.eventMode = "static";
       sprite.zIndex = ZOrder.Fortress; // lowest z
-      sprite.scale = 0.4; //TODO: scale to tiles
       sprite.angle = 30 + 60 * rotation;
-      sprite.anchor.set(0.5, 0.16); // set center on the gate
-      sprite.position = pos;
+      sprite.anchor.set(0.5, 0.155); // set center on the gate
+      sprite.position = {x: hex.x, y: hex.y};
       // add to stage
       viewport.addChild(sprite);
       //TODO: click event?
       return sprite;
     }
 
-    let hex = grid.getHex({col: 2, row: 2})!;
-    let hex2 = grid.getHex({col: 5, row: 1})!;
-    await createTile("assets/tiles/1.png", {x: hex.x, y: hex.y}, 2);
-    await createTile("assets/tiles/4.png", {x: hex2.x, y: hex2.y}, 4);
-    let hex3 = grid.getHex({col: 3, row: 6})!;
-    await createFortress("assets/fortress/brawnen.png", {x: hex3.x, y: hex3.y}, -1);
+    await createFortress("assets/fortress/grovetenders.png", {col: 2, row: 2}, 1);
+    await createFortress("assets/fortress/brawnen.png", {col: 4, row: 10}, -1);
+
+    await createTile("assets/tiles/8.png", {col: 4, row: 2}, 1);
+    await createTile("assets/tiles/4.png", {col: 6, row: 5}, 4);
+    await createTile("assets/tiles/1.png", {col: 3, row: 6}, 2);
     // sprite.onclick = (event) => {
     //  sprite.texture = sprite.texture == tile1 ? tile2 : tile1;
     // }
 
-    let first = grid.getHex({col: 0, row: 0})!;
-    await createChip("assets/chips/awsh_front.png", {x: first.x, y: first.y});
+    await createChip("assets/chips/awsh_front.png", {col: 0, row: 0});
 
     function renderHex(hex: Hex) {
       graphics.poly(hex.corners);
@@ -130,6 +131,7 @@ export class MapComponent implements OnInit {
         position: {x: hex.x, y: hex.y},
         anchor: 0.5
       });
+      label.zIndex = ZOrder.Background;
       viewport.addChild(label);
       console.log(hex);
     }
