@@ -89,14 +89,14 @@ export class MapComponent implements OnInit {
 
     let hex = grid.getHex({col: 2, row: 2})!;
     let hex2 = grid.getHex({col: 5, row: 3})!;
-    await createTile("/assets/tiles/1.png", {x: hex.x, y: hex.y});
-    await createTile("/assets/tiles/2.png", {x: hex2.x, y: hex2.y});
+    await createTile("assets/tiles/1.png", {x: hex.x, y: hex.y});
+    await createTile("assets/tiles/2.png", {x: hex2.x, y: hex2.y});
     // sprite.onclick = (event) => {
     //  sprite.texture = sprite.texture == tile1 ? tile2 : tile1;
     // }
 
     let first = grid.getHex({col: 0, row: 0})!;
-    await createChip("/assets/chips/awsh_front.png", {x: first.x, y: first.y});
+    await createChip("assets/chips/awsh_front.png", {x: first.x, y: first.y});
 
     function renderHex(hex: Hex) {
       graphics.poly(hex.corners);
