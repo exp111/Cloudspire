@@ -4,6 +4,7 @@ import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from 
 import * as PIXI from "pixi.js";
 import {Dict, Sprite} from "pixi.js";
 import {Viewport} from "pixi-viewport";
+import {Chip} from "../game/chip";
 
 enum ZOrder {
   Background = 0,
@@ -48,7 +49,7 @@ export class MapComponent implements OnInit {
 
   //TODO: include a ref to these in a custom hex class?
   //TODO: rather use a chip class
-  chips: Dict<Sprite | null> = {};
+  chips: Dict<Chip | null> = {};
   hexes: Dict<Sprite | null> = {};
   tiles: Dict<Sprite | null> = {};
   earthscapes: Dict<Sprite | null> = {};
@@ -58,7 +59,7 @@ export class MapComponent implements OnInit {
   viewport!: Viewport;
   hexOverlay = new PIXI.Graphics();
 
-  selectedChip: Sprite | null = null;
+  selectedChip: Chip | null = null;
   fakeChip!: Sprite;
 
   async ngOnInit() {
@@ -181,15 +182,15 @@ export class MapComponent implements OnInit {
 
   //TODO: move these into getter/setters?
   //TODO: replace tint with outline
-  private selectChip(selected: Sprite) {
-    selected.tint = 0xff0000;
-    this.fakeChip.texture = selected.texture;
+  private selectChip(selected: Chip) {
+    selected.sprite.tint = 0xff0000;
+    this.fakeChip.texture = selected.sprite.texture;
     this.selectedChip = selected;
   }
 
-  private deselectChip(previouslySelected: Sprite) {
+  private deselectChip(previouslySelected: Chip) {
     this.selectedChip = null;
-    previouslySelected.tint = 0xFFFFFF;
+    previouslySelected.sprite.tint = 0xFFFFFF;
     this.fakeChip.visible = false;
   }
 
@@ -215,15 +216,15 @@ export class MapComponent implements OnInit {
     }
 
     // move selected chip to here
-    let oldHex = this.grid.pointToHex(selected.position)!;
+    let oldHex = selected.hex;
     this.chips[this.getKeyFromHex(oldHex)] = null;
     this.chips[key] = selected;
-
-    selected.position = {x: hex.x, y: hex.y};
+    selected.hex = hex;
+    selected.sprite.position = {x: hex.x, y: hex.y};
     this.deselectChip(selected);
   }
 
-  private onChipClicked(chip: Sprite) {
+  private onChipClicked(chip: Chip) {
     // select chip
     let selected = this.selectedChip;
     // unselect previous chip if one was selected
@@ -324,8 +325,9 @@ export class MapComponent implements OnInit {
     sprite.position = {x: hex.x, y: hex.y};
     this.viewport.addChild(sprite);
     // add chip to list
-    this.chips[this.getKeyFromPos(col, row)] = sprite;
-    return sprite;
+    let chip = new Chip(hex, sprite);
+    this.chips[this.getKeyFromPos(col, row)] = chip;
+    return chip;
   }
 
   private async createFortress(faction: string, col: number, row: number, rotation: number = 0) {
