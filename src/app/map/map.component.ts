@@ -1,9 +1,9 @@
 import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {NgOptimizedImage} from "@angular/common";
-import {defineHex, Grid, Hex, HexCoordinates, rectangle} from "honeycomb-grid";
+import {defineHex, Grid, Hex, rectangle} from "honeycomb-grid";
 import * as PIXI from "pixi.js";
 import {Viewport} from "pixi-viewport";
-import {Sprite} from "pixi.js";
+import {Dict, Sprite} from "pixi.js";
 
 enum ZOrder {
   Background = 0,
@@ -41,6 +41,10 @@ export class MapComponent implements OnInit {
 
   hexBuilder = defineHex({dimensions: this.HEX_SIZE, origin: "topLeft"});
   grid!: Grid<Hex>;
+
+  //TODO: include these in a custom hex class?
+  //TODO: rather use a chip class
+  chips: Dict<Sprite | null> = {};
 
   app = new PIXI.Application();
   viewport!: Viewport;
@@ -80,33 +84,36 @@ export class MapComponent implements OnInit {
     // - make single hex entities and listen on them
     this.fakeChip = new Sprite({
       scale: (this.HEX_SIZE * this.SPRITE_CHIP_MULT) / this.SPRITE_CHIP_WIDTH,
-      eventMode: "dynamic",
       zIndex: ZOrder.HoverOverlay,
       anchor: 0.5,
       visible: false,
       alpha: 0.5
     });
-    this.fakeChip.onclick = () => {
-      if (!this.selectedChip) {
-        return;
-      }
-      let selected = this.selectedChip;
-      selected.position = this.fakeChip.position;
-      this.deselectChip(selected);
-    }
     this.viewport.addChild(this.fakeChip);
+    this.viewport.onclick = (e) => {
+      let hex = this.grid.pointToHex(this.viewport.toWorld(e.screen), {allowOutside: false});
+      if (hex) {
+        e.stopPropagation();
+        this.onHexClicked(hex);
+      }
+    }
     this.viewport.onmouseover = (e) => {
       if (!this.selectedChip) {
         return;
       }
 
-      //TODO: fix "cache" lag when hovering over hex for the first time
+      //TODO: fix fakechip not moving sometimes
       let hex = this.grid.pointToHex(this.viewport.toWorld(e.screen), {allowOutside: false});
       if (!hex) {
         return;
       }
 
-      //TODO: return if hex is equal to selectedchip?
+      let chip = this.chips[this.getKeyFromHex(hex)];
+      if (chip) {
+        // dont show fakechip if any other chip is here
+        this.fakeChip.visible = false;
+        return;
+      }
       this.fakeChip.visible = true;
       this.fakeChip.position = {x: hex.x, y: hex.y};
     }
@@ -132,19 +139,19 @@ export class MapComponent implements OnInit {
     this.viewport.addChild(this.hexOverlay);
 
     // Build map
-    await this.createFortress("grovetenders", {col: 2, row: 2}, 1);
-    await this.createFortress("brawnen", {col: 4, row: 10}, -1);
+    await this.createFortress("grovetenders", 2, 2, 1);
+    await this.createFortress("brawnen", 4, 10, -1);
 
-    await this.createTile(8, {col: 4, row: 2}, 1);
-    await this.createTile(4, {col: 6, row: 5}, 4);
-    await this.createTile(1, {col: 3, row: 6}, 2);
+    await this.createTile(8, 4, 2, 1);
+    await this.createTile(4, 6, 5, 4);
+    await this.createTile(1, 3, 6, 2);
 
-    await this.createEarthscape(10, {col: 6, row: 1});
-    await this.createEarthscape(13, {col: 5, row: 3}, 1);
-    await this.createEarthscape(16, {col: 2, row: 9}, -1);
-    await this.createEarthscape(16, {col: 5, row: 8}, 1);
+    await this.createEarthscape(10, 6, 1);
+    await this.createEarthscape(13, 5, 3, 1);
+    await this.createEarthscape(16, 2, 9, -1);
+    await this.createEarthscape(16, 5, 8, 1);
 
-    await this.createChip("awsh", {col: 1, row: 7});
+    await this.createChip("awsh", 1, 7);
 
     //TODO: center/fit view?
   }
@@ -163,14 +170,62 @@ export class MapComponent implements OnInit {
     this.fakeChip.visible = false;
   }
 
+  // Events
+  //TODO: put the sub functions into class events
+  private onHexClicked(hex: Hex) {
+    let chip = this.chips[this.getKeyFromHex(hex)];
+    if (chip) {
+      this.onChipClicked(chip);
+      return;
+    }
+    // nothing on this hex => empty
+    if (!this.selectedChip) {
+      return;
+    }
+    // check if fake chip hex was clicked
+    //TODO: dont check pos but rather col/row?
+    if (this.fakeChip.position.x == hex.x && this.fakeChip.position.y == hex.y) {
+      // move selected chip to here
+      let selected = this.selectedChip;
+
+      let oldHex = this.grid.pointToHex(selected.position)!;
+      this.chips[this.getKeyFromHex(oldHex)] = null;
+      this.chips[this.getKeyFromHex(hex)] = selected;
+
+      selected.position = {x: hex.x, y: hex.y};
+      this.deselectChip(selected);
+    }
+  }
+
+  private onChipClicked(chip: Sprite) {
+    // select chip
+    let selected = this.selectedChip;
+    // unselect previous chip if one was selected
+    if (selected != null) {
+      this.deselectChip(selected);
+    }
+    // if we clicked a new chip, select it
+    if (selected != chip) {
+      // only select if we werent selected
+      this.selectChip(chip);
+    }
+  }
+
   // Helpers
+  private getKeyFromHex(hex: Hex) {
+    return this.getKeyFromPos(hex.col, hex.row);
+  }
+  private getKeyFromPos(col: number, row: number) {
+    return `${col},${row}`;
+  }
+
   private async loadSpriteFromUrl(url: string) {
     let texture = await PIXI.Assets.load(url);
     return PIXI.Sprite.from(texture);
   }
 
-  private async createTile(tile: number, hexPos: HexCoordinates, rotation: number = 0) {
-    let hex = this.grid.getHex(hexPos)!;
+  private async createTile(tile: number, col: number, row: number, rotation: number = 0) {
+    let hex = this.grid.getHex({col: col, row: row})!;
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/tile/${tile}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Tile; // lowest z
@@ -183,8 +238,8 @@ export class MapComponent implements OnInit {
     return sprite;
   }
 
-  async createEarthscape(earthscape: number, hexPos: HexCoordinates, rotation: number = 0) {
-    let hex = this.grid.getHex(hexPos)!;
+  async createEarthscape(earthscape: number, col: number, row: number, rotation: number = 0) {
+    let hex = this.grid.getHex({col: col, row: row})!;
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/earthscape/${earthscape}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Earthscape;
@@ -197,8 +252,8 @@ export class MapComponent implements OnInit {
     return sprite;
   }
 
-  private async createChip(name: string, hexPos: HexCoordinates) {
-    let hex = this.grid.getHex(hexPos)!;
+  private async createChip(name: string, col: number, row: number) {
+    let hex = this.grid.getHex({col: col, row: row})!;
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/chip/${name}_front.png`);
     // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
     sprite.scale = (this.HEX_SIZE * this.SPRITE_CHIP_MULT) / sprite.width;
@@ -207,21 +262,12 @@ export class MapComponent implements OnInit {
     sprite.anchor.set(0.5);
     sprite.position = {x: hex.x, y: hex.y};
     this.viewport.addChild(sprite);
-    sprite.onclick = (e) => {
-      let selected = this.selectedChip;
-      if (selected != null) {
-        this.deselectChip(sprite);
-      }
-      if (selected != sprite) {
-        // only select if we werent selected
-        this.selectChip(sprite);
-      }
-    };
+    this.chips[this.getKeyFromPos(col, row)] = sprite;
     return sprite;
   }
 
-  private async createFortress(faction: string, hexPos: HexCoordinates, rotation: number = 0) {
-    let hex = this.grid.getHex(hexPos)!;
+  private async createFortress(faction: string, col: number, row: number, rotation: number = 0) {
+    let hex = this.grid.getHex({col: col, row: row})!;
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/fortress/${faction}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Fortress; // lowest z
