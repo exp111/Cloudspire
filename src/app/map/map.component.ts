@@ -129,10 +129,10 @@ export class MapComponent implements OnInit {
     await this.createTile(4, 6, 5, 4);
     await this.createTile(1, 3, 6, 2);
 
-    await this.createEarthscape(10, 6, 1);
-    await this.createEarthscape(13, 5, 3, 1);
-    await this.createEarthscape(16, 2, 9, -1);
-    await this.createEarthscape(16, 5, 8, 1);
+    await this.createEarthscape(10, 6, 1, false);
+    await this.createEarthscape(13, 5, 4, true, 2);
+    await this.createEarthscape(16, 3, 10, true, 1);
+    await this.createEarthscape(15, 4, 9, true, 2);
 
     await this.createChip("awsh", 1, 7);
 
@@ -260,16 +260,15 @@ export class MapComponent implements OnInit {
     return sprite;
   }
 
-  async createEarthscape(earthscape: number, col: number, row: number, rotation: number = 0) {
-    let hex = this.grid.getHex({col: col, row: row})!;
+  async createEarthscape(earthscape: number, col: number, row: number, down: boolean, rotation: number = 0) {
     let coords = {col: col, row: row};
     let hex = this.grid.getHex(coords)!;
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/earthscape/${earthscape}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Earthscape;
-    sprite.angle = 60 * rotation;
-    sprite.anchor.set(0.5, 0.285); // center
-    sprite.position = {x: hex.x, y: hex.y};
+    sprite.angle = (Number(down) * 180) + 120 * rotation;
+    sprite.anchor.set(0.5, 0.57); // center
+    sprite.position = {x: hex.x, y: hex.y + (down ? -hex.dimensions.yRadius : hex.dimensions.yRadius)};
     // add to stage
     this.viewport.addChild(sprite);
     // add earthscape hexes to list
