@@ -1,9 +1,9 @@
 import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {NgOptimizedImage} from "@angular/common";
-import {defineHex, Grid, Hex, rectangle} from "honeycomb-grid";
+import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from "honeycomb-grid";
 import * as PIXI from "pixi.js";
-import {Viewport} from "pixi-viewport";
 import {Dict, Sprite} from "pixi.js";
+import {Viewport} from "pixi-viewport";
 
 enum ZOrder {
   Background = 0,
@@ -45,6 +45,9 @@ export class MapComponent implements OnInit {
   //TODO: include these in a custom hex class?
   //TODO: rather use a chip class
   chips: Dict<Sprite | null> = {};
+  hexes: Dict<Sprite | null> = {};
+  tiles: Dict<Sprite | null> = {};
+  earthscapes: Dict<Sprite | null> = {};
 
   app = new PIXI.Application();
   viewport!: Viewport;
@@ -93,7 +96,7 @@ export class MapComponent implements OnInit {
     this.viewport.onclick = (e) => {
       let hex = this.grid.pointToHex(this.viewport.toWorld(e.screen), {allowOutside: false});
       if (hex) {
-        e.stopPropagation();
+        e.stopPropagation(); // stop bubbling
         this.onHexClicked(hex);
       }
     }
@@ -118,26 +121,6 @@ export class MapComponent implements OnInit {
       this.fakeChip.position = {x: hex.x, y: hex.y};
     }
 
-    // Hex overlay
-    this.hexOverlay.zIndex = ZOrder.HexOverlay;
-    this.grid.forEach((hex) => {
-      this.hexOverlay.poly(hex.corners);
-      this.hexOverlay.stroke({width: 2, color: 0x000000});
-      this.hexOverlay.circle(hex.x, hex.y, 2);
-      this.hexOverlay.fill({color: 0xff0000});
-      let label = new PIXI.Text({
-        text: `${hex.col},${hex.row}`,
-        position: {x: hex.x, y: hex.y},
-        anchor: 0.5
-      });
-      label.zIndex = ZOrder.CoordinateOverlay;
-      label.style = {
-        fill: {color: 0xff0000},
-      };
-      this.viewport.addChild(label);
-    });
-    this.viewport.addChild(this.hexOverlay);
-
     // Build map
     await this.createFortress("grovetenders", 2, 2, 1);
     await this.createFortress("brawnen", 4, 10, -1);
@@ -152,6 +135,26 @@ export class MapComponent implements OnInit {
     await this.createEarthscape(16, 5, 8, 1);
 
     await this.createChip("awsh", 1, 7);
+
+    // Hex overlay
+    this.hexOverlay.zIndex = ZOrder.HexOverlay;
+    this.grid.forEach((hex) => {
+      this.hexOverlay.poly(hex.corners);
+      this.hexOverlay.stroke({width: 2, color: 0x000000});
+      this.hexOverlay.circle(hex.x, hex.y, 2);
+      this.hexOverlay.fill({color: 0xff0000});
+      let label = new PIXI.Text({
+        text: `${hex.col},${hex.row}`,
+        position: {x: hex.x, y: hex.y},
+        anchor: 0.5
+      });
+      label.zIndex = ZOrder.CoordinateOverlay;
+      label.style = {
+        fill: {color: this.hexes[this.getKeyFromHex(hex)] ? 0xff0000 : 0x00ff00},
+      };
+      this.viewport.addChild(label);
+    });
+    this.viewport.addChild(this.hexOverlay);
 
     //TODO: center/fit view?
   }
@@ -222,7 +225,8 @@ export class MapComponent implements OnInit {
   }
 
   private async createTile(tile: number, col: number, row: number, rotation: number = 0) {
-    let hex = this.grid.getHex({col: col, row: row})!;
+    let coords = {col: col, row: row};
+    let hex = this.grid.getHex(coords)!;
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/tile/${tile}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Tile; // lowest z
@@ -231,12 +235,35 @@ export class MapComponent implements OnInit {
     sprite.position = {x: hex.x, y: hex.y};
     // add to stage
     this.viewport.addChild(sprite);
+    // add tile hexes to list
+    let traverser = [
+      fromCoordinates(coords),
+      move(Direction.NW),
+      move(Direction.NE),
+      move(Direction.SE),
+      move(Direction.E),
+      move(Direction.SW),
+      move(Direction.SE),
+      move(Direction.W),
+      move(Direction.SW),
+      move(Direction.NW),
+      move(Direction.W),
+      move(Direction.NE),
+      move(Direction.NW)
+    ];
+    this.grid.traverse(traverser).forEach((h) => {
+      let key = this.getKeyFromHex(h);
+      this.hexes[key] = sprite;
+      this.tiles[key] = sprite;
+    });
     //TODO: click event?
     return sprite;
   }
 
   async createEarthscape(earthscape: number, col: number, row: number, rotation: number = 0) {
     let hex = this.grid.getHex({col: col, row: row})!;
+    let coords = {col: col, row: row};
+    let hex = this.grid.getHex(coords)!;
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/earthscape/${earthscape}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Earthscape;
@@ -245,6 +272,17 @@ export class MapComponent implements OnInit {
     sprite.position = {x: hex.x, y: hex.y};
     // add to stage
     this.viewport.addChild(sprite);
+    // add earthscape hexes to list
+    let traverser = [
+      fromCoordinates(coords),
+      move(down ? Direction.NE : Direction.SE),
+      move(Direction.W)
+    ];
+    this.grid.traverse(traverser).forEach((h) => {
+      let key = this.getKeyFromHex(h);
+      this.hexes[key] = sprite;
+      this.earthscapes[key] = sprite;
+    });
     //TODO: click event?
     return sprite;
   }
@@ -259,6 +297,7 @@ export class MapComponent implements OnInit {
     sprite.anchor.set(0.5);
     sprite.position = {x: hex.x, y: hex.y};
     this.viewport.addChild(sprite);
+    // add chip to list
     this.chips[this.getKeyFromPos(col, row)] = sprite;
     return sprite;
   }
@@ -273,6 +312,7 @@ export class MapComponent implements OnInit {
     sprite.position = {x: hex.x, y: hex.y};
     // add to stage
     this.viewport.addChild(sprite);
+    //TODO: add to list this.fortress
     //TODO: click event?
     return sprite;
   }
