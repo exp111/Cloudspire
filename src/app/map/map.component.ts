@@ -42,12 +42,15 @@ export class MapComponent implements OnInit {
   hexBuilder = defineHex({dimensions: this.HEX_SIZE, origin: "topLeft"});
   grid!: Grid<Hex>;
 
-  //TODO: include these in a custom hex class?
+  renderNonMapHexes = false;
+
+  //TODO: include a ref to these in a custom hex class?
   //TODO: rather use a chip class
   chips: Dict<Sprite | null> = {};
   hexes: Dict<Sprite | null> = {};
   tiles: Dict<Sprite | null> = {};
   earthscapes: Dict<Sprite | null> = {};
+  fortress: Dict<Sprite | null> = {};
 
   app = new PIXI.Application();
   viewport!: Viewport;
@@ -111,7 +114,14 @@ export class MapComponent implements OnInit {
         return;
       }
 
-      let chip = this.chips[this.getKeyFromHex(hex)];
+      let key = this.getKeyFromHex(hex);
+      // not inside the map
+      if (!this.hexes[key]) {
+        this.fakeChip.visible = false;
+        return;
+      }
+
+      let chip = this.chips[key];
       if (chip) {
         // dont show fakechip if any other chip is here
         this.fakeChip.visible = false;
@@ -139,6 +149,10 @@ export class MapComponent implements OnInit {
     // Hex overlay
     this.hexOverlay.zIndex = ZOrder.HexOverlay;
     this.grid.forEach((hex) => {
+      let key = this.getKeyFromHex(hex);
+      if (!this.renderNonMapHexes && !this.hexes[key]) {
+        return;
+      }
       this.hexOverlay.poly(hex.corners);
       this.hexOverlay.stroke({width: 2, color: 0x000000});
       this.hexOverlay.circle(hex.x, hex.y, 2);
@@ -150,7 +164,7 @@ export class MapComponent implements OnInit {
       });
       label.zIndex = ZOrder.CoordinateOverlay;
       label.style = {
-        fill: {color: this.hexes[this.getKeyFromHex(hex)] ? 0xff0000 : 0x00ff00},
+        fill: {color: this.hexes[key] ? 0xff0000 : 0x00ff00},
       };
       this.viewport.addChild(label);
     });
@@ -176,8 +190,15 @@ export class MapComponent implements OnInit {
   // Events
   //TODO: put the sub functions into class events
   private onHexClicked(hex: Hex) {
+    let key = this.getKeyFromHex(hex);
+    // dont do anything if its outside of the map
+    if (!this.hexes[key]) {
+      return;
+    }
+
     let chip = this.chips[this.getKeyFromHex(hex)];
     if (chip) {
+      // forward to chip
       this.onChipClicked(chip);
       return;
     }
@@ -190,7 +211,7 @@ export class MapComponent implements OnInit {
     // move selected chip to here
     let oldHex = this.grid.pointToHex(selected.position)!;
     this.chips[this.getKeyFromHex(oldHex)] = null;
-    this.chips[this.getKeyFromHex(hex)] = selected;
+    this.chips[key] = selected;
 
     selected.position = {x: hex.x, y: hex.y};
     this.deselectChip(selected);
@@ -302,7 +323,8 @@ export class MapComponent implements OnInit {
   }
 
   private async createFortress(faction: string, col: number, row: number, rotation: number = 0) {
-    let hex = this.grid.getHex({col: col, row: row})!;
+    let coords = {col: col, row: row};
+    let hex = this.grid.getHex(coords)!;
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/fortress/${faction}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Fortress; // lowest z
@@ -311,7 +333,15 @@ export class MapComponent implements OnInit {
     sprite.position = {x: hex.x, y: hex.y};
     // add to stage
     this.viewport.addChild(sprite);
-    //TODO: add to list this.fortress
+    // add hexes to list
+    let traverser = [
+      fromCoordinates(coords),
+      //TODO: add other tiles (mostly just spire spots) depending on rotation
+    ];
+    this.grid.traverse(traverser).forEach((h) => {
+      let key = this.getKeyFromHex(h);
+      this.fortress[key] = sprite;
+    });
     //TODO: click event?
     return sprite;
   }
