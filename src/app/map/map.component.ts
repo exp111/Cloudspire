@@ -179,22 +179,18 @@ export class MapComponent implements OnInit {
       return;
     }
     // nothing on this hex => empty
-    if (!this.selectedChip) {
+    let selected = this.selectedChip;
+    if (!selected) {
       return;
     }
-    // check if fake chip hex was clicked
-    //TODO: dont check pos but rather col/row?
-    if (this.fakeChip.position.x == hex.x && this.fakeChip.position.y == hex.y) {
-      // move selected chip to here
-      let selected = this.selectedChip;
 
-      let oldHex = this.grid.pointToHex(selected.position)!;
-      this.chips[this.getKeyFromHex(oldHex)] = null;
-      this.chips[this.getKeyFromHex(hex)] = selected;
+    // move selected chip to here
+    let oldHex = this.grid.pointToHex(selected.position)!;
+    this.chips[this.getKeyFromHex(oldHex)] = null;
+    this.chips[this.getKeyFromHex(hex)] = selected;
 
-      selected.position = {x: hex.x, y: hex.y};
-      this.deselectChip(selected);
-    }
+    selected.position = {x: hex.x, y: hex.y};
+    this.deselectChip(selected);
   }
 
   private onChipClicked(chip: Sprite) {
@@ -215,6 +211,7 @@ export class MapComponent implements OnInit {
   private getKeyFromHex(hex: Hex) {
     return this.getKeyFromPos(hex.col, hex.row);
   }
+
   private getKeyFromPos(col: number, row: number) {
     return `${col},${row}`;
   }
