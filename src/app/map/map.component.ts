@@ -43,6 +43,8 @@ export class MapComponent implements OnInit {
   grid!: Grid<Hex>;
 
   renderNonMapHexes = false;
+  showCoordLabels = true;
+  showHexCenters = false;
 
   //TODO: include a ref to these in a custom hex class?
   //TODO: rather use a chip class
@@ -155,18 +157,22 @@ export class MapComponent implements OnInit {
       }
       this.hexOverlay.poly(hex.corners);
       this.hexOverlay.stroke({width: 2, color: 0x000000});
-      this.hexOverlay.circle(hex.x, hex.y, 2);
-      this.hexOverlay.fill({color: 0xff0000});
-      let label = new PIXI.Text({
-        text: `${hex.col},${hex.row}`,
-        position: {x: hex.x, y: hex.y},
-        anchor: 0.5
-      });
-      label.zIndex = ZOrder.CoordinateOverlay;
-      label.style = {
-        fill: {color: this.hexes[key] ? 0xff0000 : 0x00ff00},
-      };
-      this.viewport.addChild(label);
+      if (this.showHexCenters) {
+        this.hexOverlay.circle(hex.x, hex.y, 2);
+        this.hexOverlay.fill({color: 0xff0000});
+      }
+      if (this.showCoordLabels) {
+        let label = new PIXI.Text({
+          text: `${hex.col},${hex.row}`,
+          position: {x: hex.x, y: hex.y},
+          anchor: 0.5
+        });
+        label.zIndex = ZOrder.CoordinateOverlay;
+        label.style = {
+          fill: {color: this.hexes[key] ? 0xff0000 : 0x00ff00},
+        };
+        this.viewport.addChild(label);
+      }
     });
     this.viewport.addChild(this.hexOverlay);
 
