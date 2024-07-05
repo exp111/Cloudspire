@@ -96,7 +96,7 @@ export class MapComponent implements OnInit {
       alpha: 0.5
     });
     this.viewport.addChild(this.fakeChip);
-    this.viewport.onclick = (e) => {
+    this.viewport.onpointertap = (e) => {
       let hex = this.grid.pointToHex(this.viewport.toWorld(e.screen), {allowOutside: false});
       if (hex) {
         e.stopPropagation(); // stop bubbling
