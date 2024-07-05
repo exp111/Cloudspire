@@ -11,11 +11,20 @@ export class Chip {
   }
 }
 
+enum TerrainAllowance {
+  None = 0,
+  Grass,
+  Forest,
+  Mountain,
+  Water
+}
+
 export class Hero extends Chip {
   baseHealth: number;
   baseAttack: number;
   baseMovement: number;
   upgradeCapacity: number;
+  terrainAllowance: TerrainAllowance;
 
   constructor(hex: Hex, sprite: PIXI.Sprite) {
     super(hex, sprite);
@@ -24,5 +33,6 @@ export class Hero extends Chip {
     this.baseAttack = 0;
     this.baseMovement = 0;
     this.upgradeCapacity = 0;
+    this.terrainAllowance = TerrainAllowance.None;
   }
 }

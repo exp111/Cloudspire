@@ -5,6 +5,8 @@ import * as PIXI from "pixi.js";
 import {Dict, Sprite} from "pixi.js";
 import {Viewport} from "pixi-viewport";
 import {Chip} from "../game/chip";
+import {Earthscape, HexGroup, Isle} from "../game/hex";
+import {Fortress} from "../game/fortress";
 
 enum ZOrder {
   Background = 0,
@@ -50,10 +52,10 @@ export class MapComponent implements OnInit {
   //TODO: include a ref to these in a custom hex class?
   //TODO: rather use a chip class
   chips: Dict<Chip | null> = {};
-  hexes: Dict<Sprite | null> = {};
-  tiles: Dict<Sprite | null> = {};
-  earthscapes: Dict<Sprite | null> = {};
-  fortress: Dict<Sprite | null> = {};
+  hexes: Dict<HexGroup | null> = {};
+  isles: Dict<Isle | null> = {};
+  earthscapes: Dict<Earthscape | null> = {};
+  fortress: Dict<Fortress | null> = {};
 
   app = new PIXI.Application();
   viewport!: Viewport;
@@ -216,8 +218,7 @@ export class MapComponent implements OnInit {
     }
 
     // move selected chip to here
-    let oldHex = selected.hex;
-    this.chips[this.getKeyFromHex(oldHex)] = null;
+    this.chips[this.getKeyFromHex(selected.hex)] = null;
     this.chips[key] = selected;
     selected.hex = hex;
     selected.sprite.position = {x: hex.x, y: hex.y};
@@ -252,10 +253,11 @@ export class MapComponent implements OnInit {
     return PIXI.Sprite.from(texture);
   }
 
-  private async createTile(tile: number, col: number, row: number, rotation: number = 0) {
+  //TODO: move these into the specific subclasses?
+  private async createTile(number: number, col: number, row: number, rotation: number = 0) {
     let coords = {col: col, row: row};
     let hex = this.grid.getHex(coords)!;
-    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/tile/${tile}.png`);
+    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/isle/${number}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Tile; // lowest z
     sprite.angle = 30 + 60 * rotation;
@@ -279,19 +281,20 @@ export class MapComponent implements OnInit {
       move(Direction.NE),
       move(Direction.NW)
     ];
+    let isle = new Isle(hex, sprite, number);
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
-      this.hexes[key] = sprite;
-      this.tiles[key] = sprite;
+      this.hexes[key] = isle;
+      this.isles[key] = isle;
     });
     //TODO: click event?
-    return sprite;
+    return isle;
   }
 
-  async createEarthscape(earthscape: number, col: number, row: number, down: boolean, rotation: number = 0) {
+  async createEarthscape(number: number, col: number, row: number, down: boolean, rotation: number = 0) {
     let coords = {col: col, row: row};
     let hex = this.grid.getHex(coords)!;
-    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/earthscape/${earthscape}.png`);
+    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/earthscape/${number}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Earthscape;
     sprite.angle = (Number(down) * 180) + 120 * rotation;
@@ -305,13 +308,14 @@ export class MapComponent implements OnInit {
       move(down ? Direction.NE : Direction.SE),
       move(Direction.W)
     ];
+    let scape = new Earthscape(hex, sprite, number);
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
-      this.hexes[key] = sprite;
-      this.earthscapes[key] = sprite;
+      this.hexes[key] = scape;
+      this.earthscapes[key] = scape;
     });
     //TODO: click event?
-    return sprite;
+    return scape;
   }
 
   private async createChip(name: string, col: number, row: number) {
@@ -346,12 +350,13 @@ export class MapComponent implements OnInit {
       fromCoordinates(coords),
       //TODO: add other tiles (mostly just spire spots) depending on rotation
     ];
+    let fortress = new Fortress(hex, sprite, faction);
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
-      this.fortress[key] = sprite;
+      this.fortress[key] = fortress;
     });
     //TODO: click event?
-    return sprite;
+    return fortress;
   }
 
 }
