@@ -92,8 +92,7 @@ export class MapComponent implements OnInit {
       }
       let selected = this.selectedChip;
       selected.position = this.fakeChip.position;
-      this.selectedChip = null;
-      this.onChipDeselected(selected);
+      this.deselectChip(selected);
     }
     this.viewport.addChild(this.fakeChip);
     this.viewport.onmouseover = (e) => {
@@ -152,14 +151,14 @@ export class MapComponent implements OnInit {
 
   //TODO: move these into getter/setters?
   //TODO: replace tint with outline
-  // A chip is about to be selected
-  private onChipSelected(selected: Sprite) {
+  private selectChip(selected: Sprite) {
     selected.tint = 0xff0000;
     this.fakeChip.texture = selected.texture;
+    this.selectedChip = selected;
   }
 
-  // A chip was deselected
-  private onChipDeselected(previouslySelected: Sprite) {
+  private deselectChip(previouslySelected: Sprite) {
+    this.selectedChip = null;
     previouslySelected.tint = 0xFFFFFF;
     this.fakeChip.visible = false;
   }
@@ -210,16 +209,12 @@ export class MapComponent implements OnInit {
     this.viewport.addChild(sprite);
     sprite.onclick = (e) => {
       let selected = this.selectedChip;
-      if (selected == sprite) {
-        // unselect if it was selected
-        this.selectedChip = null;
-      } else {
-        this.onChipSelected(sprite);
-        this.selectedChip = sprite;
-      }
-      // send deselect event
       if (selected != null) {
-        this.onChipDeselected(sprite);
+        this.deselectChip(sprite);
+      }
+      if (selected != sprite) {
+        // only select if we werent selected
+        this.selectChip(sprite);
       }
     };
     return sprite;
