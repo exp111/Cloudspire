@@ -300,6 +300,7 @@ export class MapComponent implements OnInit {
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/isle/${number}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Tile; // lowest z
+    //TODO: can we remove the 30 from here? turn the isle imgs by 30 degress
     sprite.angle = 30 + 60 * rotation;
     sprite.anchor.set(0.5); // center
     sprite.position = {x: hex.x, y: hex.y};
@@ -347,17 +348,18 @@ export class MapComponent implements OnInit {
     // add to stage
     this.viewport.addChild(sprite);
     // add earthscape hexes to list
+    //INFO: earthscapes don't rotate around one base hex but rather at the center, so we need to move manually and get the terrain otherwise
     let traverser = [
       fromCoordinates(coords),
-      //TODO: rotatedmove
-      move(down ? Direction.NE : Direction.SE),
-      move(Direction.W)
+      move(down ? Direction.NW : Direction.SE),
+      move(down ? Direction.E : Direction.W)
     ];
     let scape = new Earthscape(hex, sprite, number);
     let i = 0;
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
-      let hex = new GameHex(h, scape, scape.data.terrain[i]);
+      // offset the terrain index by the rotation
+      let hex = new GameHex(h, scape, scape.data.terrain[(i + (rotation * 2)) % scape.data.terrain.length]);
       scape.hexes[key] = hex;
       this.hexes[key] = hex;
       this.earthscapes[key] = scape;
