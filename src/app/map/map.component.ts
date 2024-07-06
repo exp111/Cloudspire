@@ -2,7 +2,7 @@ import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core
 import {NgOptimizedImage} from "@angular/common";
 import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from "honeycomb-grid";
 import * as PIXI from "pixi.js";
-import {Dict, Sprite} from "pixi.js";
+import {ColorSource, Dict, PointData, Sprite} from "pixi.js";
 import {Viewport} from "pixi-viewport";
 import {Chip, Hero} from "../game/chip";
 import {Earthscape, HexGroup, Isle} from "../game/hex";
@@ -18,6 +18,7 @@ enum ZOrder {
   ChipOverlay = Chip + 1,
   CoordinateOverlay,
   HoverOverlay,
+  Debug
 }
 
 @Component({
@@ -141,9 +142,9 @@ export class MapComponent implements OnInit {
     await this.createFortress("grovetenders", 2, 2, 1);
     await this.createFortress("brawnen", 4, 10, -1);
 
-    await this.createTile(8, 4, 2, 1);
-    await this.createTile(4, 6, 5, 4);
-    await this.createTile(1, 3, 6, 2);
+    await this.createIsle(8, 4, 2, 1);
+    await this.createIsle(4, 6, 5, 4);
+    await this.createIsle(1, 3, 6, 2);
 
     await this.createEarthscape(10, 6, 1, false);
     await this.createEarthscape(13, 5, 4, true, 2);
@@ -254,8 +255,39 @@ export class MapComponent implements OnInit {
     return PIXI.Sprite.from(texture);
   }
 
+  DirectionFromAngle(angle: number) {
+    let arr: {[k: number]: Direction} = {
+      30: Direction.NE,
+      90: Direction.E,
+      150: Direction.SE,
+      210: Direction.SW,
+      270: Direction.W,
+      330: Direction.NW
+    };
+    // normalize
+    angle = angle % 360;
+    return arr[angle];
+  }
+  DirectionToAngle(dir: Direction) {
+    let arr = [0,30,90,150,180,210,270,330];
+    return arr[dir];
+  }
+  rotatedMove(dir: Direction, rotation: number) {
+    return move(this.DirectionFromAngle(this.DirectionToAngle(dir) + rotation * 60));
+  }
+
+  debugText(text: string, color: ColorSource, pos: PointData) {
+    let lbl = new PIXI.Text({
+      text: text,
+      position: pos,
+    });
+    lbl.style = {fill: {color: color}}
+    lbl.zIndex = ZOrder.Debug;
+    this.viewport.addChild(lbl);
+  }
+
   //TODO: move these into the specific subclasses?
-  private async createTile(number: number, col: number, row: number, rotation: number = 0) {
+  private async createIsle(number: number, col: number, row: number, rotation: number = 0) {
     let coords = {col: col, row: row};
     let hex = this.grid.getHex(coords)!;
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/isle/${number}.png`);
@@ -269,18 +301,18 @@ export class MapComponent implements OnInit {
     // add tile hexes to list
     let traverser = [
       fromCoordinates(coords),
-      move(Direction.NW),
-      move(Direction.NE),
-      move(Direction.SE),
-      move(Direction.E),
-      move(Direction.SW),
-      move(Direction.SE),
-      move(Direction.W),
-      move(Direction.SW),
-      move(Direction.NW),
-      move(Direction.W),
-      move(Direction.NE),
-      move(Direction.NW)
+      this.rotatedMove(Direction.NW, rotation),
+      this.rotatedMove(Direction.NE, rotation),
+      this.rotatedMove(Direction.SE, rotation),
+      this.rotatedMove(Direction.E, rotation),
+      this.rotatedMove(Direction.SW, rotation),
+      this.rotatedMove(Direction.SE, rotation),
+      this.rotatedMove(Direction.W, rotation),
+      this.rotatedMove(Direction.SW, rotation),
+      this.rotatedMove(Direction.NW, rotation),
+      this.rotatedMove(Direction.W, rotation),
+      this.rotatedMove(Direction.NE, rotation),
+      this.rotatedMove(Direction.NW, rotation)
     ];
     let isle = new Isle(hex, sprite, number);
     this.grid.traverse(traverser).forEach((h) => {
@@ -306,6 +338,7 @@ export class MapComponent implements OnInit {
     // add earthscape hexes to list
     let traverser = [
       fromCoordinates(coords),
+      //TODO: rotatedmove
       move(down ? Direction.NE : Direction.SE),
       move(Direction.W)
     ];
@@ -368,6 +401,14 @@ export class MapComponent implements OnInit {
     let traverser = [
       fromCoordinates(coords),
       //TODO: add other tiles (mostly just spire spots) depending on rotation
+      this.rotatedMove(Direction.SE, rotation),
+      this.rotatedMove(Direction.SE, rotation),
+      this.rotatedMove(Direction.W, rotation),
+      this.rotatedMove(Direction.W, rotation),
+      this.rotatedMove(Direction.NW, rotation),
+      this.rotatedMove(Direction.NW, rotation),
+      this.rotatedMove(Direction.E, rotation),
+      this.rotatedMove(Direction.SE, rotation),
     ];
     let fortress = new Fortress(hex, sprite, faction);
     this.grid.traverse(traverser).forEach((h) => {
