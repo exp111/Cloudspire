@@ -5,7 +5,7 @@ import * as PIXI from "pixi.js";
 import {ColorSource, Dict, PointData, Sprite} from "pixi.js";
 import {Viewport} from "pixi-viewport";
 import {Chip, Hero} from "../game/chip";
-import {Earthscape, HexGroup, Isle} from "../game/hex";
+import {Earthscape, GameHex, Isle} from "../game/hex";
 import {Fortress} from "../game/fortress";
 
 enum ZOrder {
@@ -54,7 +54,7 @@ export class MapComponent implements OnInit {
   //TODO: include a ref to these in a custom hex class?
   //TODO: rather use a chip class
   chips: Dict<Chip | null> = {};
-  hexes: Dict<HexGroup | null> = {};
+  hexes: Dict<GameHex | null> = {};
   isles: Dict<Isle | null> = {};
   earthscapes: Dict<Earthscape | null> = {};
   fortress: Dict<Fortress | null> = {};
@@ -214,9 +214,9 @@ export class MapComponent implements OnInit {
     }
 
     // move selected chip to here
-    this.chips[this.getKeyFromHex(selected.hex)] = null;
+    this.chips[this.getKeyFromHex(selected.hex.hex)] = null;
     this.chips[key] = selected;
-    selected.hex = hex;
+    selected.hex = this.hexes[key]!;
     selected.container.position = {x: hex.x, y: hex.y};
     this.deselectChip(selected);
   }
@@ -310,10 +310,14 @@ export class MapComponent implements OnInit {
       this.rotatedMove(Direction.NW, rotation)
     ];
     let isle = new Isle(hex, sprite, number);
+    let i = 0;
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
-      this.hexes[key] = isle;
+      let hex = new GameHex(h, isle, isle.data.terrain[i]);
+      isle.hexes[key] = hex;
+      this.hexes[key] = hex;
       this.isles[key] = isle;
+      i++;
     });
     //TODO: click event?
     return isle;
@@ -338,10 +342,14 @@ export class MapComponent implements OnInit {
       move(Direction.W)
     ];
     let scape = new Earthscape(hex, sprite, number);
+    let i = 0;
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
-      this.hexes[key] = scape;
+      let hex = new GameHex(h, scape, scape.data.terrain[i]);
+      scape.hexes[key] = hex;
+      this.hexes[key] = hex;
       this.earthscapes[key] = scape;
+      i++;
     });
     //TODO: click event?
     return scape;
@@ -364,8 +372,8 @@ export class MapComponent implements OnInit {
   }
 
   private async createHero(name: string, col: number, row: number) {
-    let hex = this.grid.getHex({col: col, row: row})!;
-    let container = await this.createChip(name, hex);
+    let hex = this.hexes[this.getKeyFromPos(col, row)]!;
+    let container = await this.createChip(name, hex.hex);
     // add chip to list
     let chip = new Hero(hex, container, name);
     this.chips[this.getKeyFromPos(col, row)] = chip;

@@ -1,5 +1,6 @@
-import {FactionData, Factions} from "./factions";
-import {HeroData, TerrainAllowance} from "./data";
+import {FactionData} from "./model/faction";
+import {HeroData} from "./model/chip";
+import {Factions, Terrain} from "./enums";
 
 class BrawnenHero extends HeroData {
   override faction = Factions.BRAWNEN;
@@ -15,7 +16,7 @@ export class BrawnenFaction implements FactionData {
       attack: 1,
       movement: 2,
       capacity: 1,
-      allowance: TerrainAllowance.Forest,
+      allowance: Terrain.Forest,
       promotedReward: 4,
       promotedAttack: 2}),
   ];
