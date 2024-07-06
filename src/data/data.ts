@@ -2,6 +2,7 @@ import {BrawnenFaction} from "./brawnen";
 
 import {IslesData} from "./isles";
 import {EarthscapesData} from "./earthscapes";
+import {LandmarkData} from "./landmark";
 
 export class Data {
   static Brawnen: BrawnenFaction = new BrawnenFaction();
@@ -11,7 +12,8 @@ export class Data {
     //TODO: market
   ];
   static Minions = [
-    ...this.Brawnen.minions
+    ...this.Brawnen.minions,
+    ...LandmarkData.Minions
     //TODO: landmark
   ];
   static Spires = [

@@ -11,9 +11,19 @@ export abstract class ChipData {
   }
 }
 
+//TODO: talents
+export class LandmarkMinionData extends ChipData {
+  health!: number;
+  attack: number = 0;
+  movement!: number;
+  constructor(data: Partial<LandmarkMinionData>) {
+    super(data);
+  }
+}
+
 export class HeroData extends ChipData {
   health!: number;
-  attack!: number;
+  attack: number = 0;
   movement!: number;
   capacity!: number;
   allowance!: Terrain;

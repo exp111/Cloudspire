@@ -159,7 +159,8 @@ export class MapComponent implements OnInit {
     await this.createEarthscape(16, 3, 10, true, 1);
     await this.createEarthscape(15, 4, 9, true, 2);
 
-    await this.createHero("awsh", 1, 7);
+    await this.createHero("Awsh", 1, 7);
+    await this.createLandmark("Thoraxx", 3, 6);
 
     // Hex overlay
     this.hexOverlay.zIndex = ZOrder.HexOverlay;
@@ -373,7 +374,9 @@ export class MapComponent implements OnInit {
     let container = new PIXI.Container();
     container.zIndex = ZOrder.Chip;
     container.position = {x: hex.x, y: hex.y};
-    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/chip/${name}_front.png`);
+    let fileName = name.toLowerCase().replace(" ", "_");
+    //TODO: get name dynamically from class
+    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/chip/${fileName}_front.png`);
     // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
     sprite.label = "sprite";
     sprite.scale = (this.HEX_SIZE * this.SPRITE_CHIP_MULT) / sprite.width;
@@ -401,6 +404,16 @@ export class MapComponent implements OnInit {
       fill: {color: 0xff0000},
     };
     container.addChild(health);
+    return chip;
+  }
+
+  private async createLandmark(name: string, col: number, row: number) {
+    let hex = this.hexes[this.getKeyFromPos(col, row)]!;
+    let container = await this.createChip(name, hex.hex);
+    // add chip to list
+    //TODO: landmark class
+    let chip = new Chip(hex, container, name);
+    this.chips[this.getKeyFromPos(col, row)] = chip;
     return chip;
   }
 

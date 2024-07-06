@@ -8,6 +8,7 @@ export enum Terrain {
 }
 
 export enum Factions {
+  NEUTRAL,
   BRAWNEN,
   GROVETENDERS,
   HEIRS,
