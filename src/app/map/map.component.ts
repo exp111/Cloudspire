@@ -167,16 +167,10 @@ export class MapComponent implements OnInit {
         this.hexOverlay.fill({color: 0xff0000});
       }
       if (this.showCoordLabels) {
-        let label = new PIXI.Text({
-          text: `${hex.col},${hex.row}`,
-          position: {x: hex.x, y: hex.y},
-          anchor: 0.5
-        });
-        label.zIndex = ZOrder.CoordinateOverlay;
-        label.style = {
-          fill: {color: this.hexes[key] ? 0xff0000 : 0x00ff00},
-        };
-        this.viewport.addChild(label);
+        this.debugText(`${hex.col},${hex.row}`,
+          this.hexes[key] ? 0xff0000 : 0x00ff00,
+          {x: hex.x, y: hex.y},
+          ZOrder.CoordinateOverlay);
       }
     });
     this.viewport.addChild(this.hexOverlay);
@@ -276,13 +270,14 @@ export class MapComponent implements OnInit {
     return move(this.DirectionFromAngle(this.DirectionToAngle(dir) + rotation * 60));
   }
 
-  debugText(text: string, color: ColorSource, pos: PointData) {
+  debugText(text: string, color: ColorSource, pos: PointData, zIndex: ZOrder = ZOrder.Debug) {
     let lbl = new PIXI.Text({
       text: text,
       position: pos,
+      anchor: 0.5
     });
     lbl.style = {fill: {color: color}}
-    lbl.zIndex = ZOrder.Debug;
+    lbl.zIndex = zIndex;
     this.viewport.addChild(lbl);
   }
 
@@ -354,6 +349,7 @@ export class MapComponent implements OnInit {
 
   private async createChip(name: string, hex: Hex) : Promise<PIXI.Container> {
     let container = new PIXI.Container();
+    container.zIndex = ZOrder.Chip;
     container.position = {x: hex.x, y: hex.y};
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/chip/${name}_front.png`);
     // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
