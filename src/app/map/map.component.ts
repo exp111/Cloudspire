@@ -122,8 +122,15 @@ export class MapComponent implements OnInit {
       }
 
       let key = this.getKeyFromHex(hex);
+      let gamehex = this.hexes[key];
       // not inside the map
-      if (!this.hexes[key]) {
+      if (!gamehex) {
+        this.fakeChip.visible = false;
+        return;
+      }
+
+      // unit cant move here
+      if (!this.selectedChip.canMoveToHex(gamehex)) {
         this.fakeChip.visible = false;
         return;
       }
@@ -196,8 +203,9 @@ export class MapComponent implements OnInit {
   //TODO: put the sub functions into class events
   private onHexClicked(hex: Hex) {
     let key = this.getKeyFromHex(hex);
+    let gameHex = this.hexes[key];
     // dont do anything if its outside of the map
-    if (!this.hexes[key]) {
+    if (!gameHex) {
       return;
     }
 
@@ -213,10 +221,14 @@ export class MapComponent implements OnInit {
       return;
     }
 
+    // unit cant move here
+    if (!selected.canMoveToHex(gameHex)) {
+      return;
+    }
     // move selected chip to here
     this.chips[this.getKeyFromHex(selected.hex.hex)] = null;
     this.chips[key] = selected;
-    selected.hex = this.hexes[key]!;
+    selected.hex = gameHex;
     selected.container.position = {x: hex.x, y: hex.y};
     this.deselectChip(selected);
   }
