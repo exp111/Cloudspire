@@ -110,6 +110,7 @@ export class MapComponent implements OnInit {
         this.onHexClicked(hex);
       }
     }
+    //TODO: rather than a hover, let user select chip and then show all possible options
     this.viewport.onmouseover = (e) => {
       if (!this.selectedChip) {
         return;
@@ -149,11 +150,11 @@ export class MapComponent implements OnInit {
     await this.createFortress("grovetenders", 2, 2, 1);
     await this.createFortress("brawnen", 4, 10, -1);
 
-    await this.createIsle(8, 4, 2, 1);
-    await this.createIsle(4, 6, 5, 4);
-    await this.createIsle(1, 3, 6, 2);
+    await this.createIsle(8, 4, 2, 3);
+    await this.createIsle(4, 6, 5, 0);
+    await this.createIsle(1, 3, 6, 4);
 
-    await this.createEarthscape(10, 6, 1, false);
+    await this.createEarthscape(10, 6, 1, false, 0);
     await this.createEarthscape(13, 5, 4, true, 2);
     await this.createEarthscape(16, 3, 10, true, 1);
     await this.createEarthscape(15, 4, 9, true, 2);
@@ -300,8 +301,7 @@ export class MapComponent implements OnInit {
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/isle/${number}.png`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Tile; // lowest z
-    //TODO: can we remove the 30 from here? turn the isle imgs by 30 degress
-    sprite.angle = 30 + 60 * rotation;
+    sprite.angle = 60 * rotation;
     sprite.anchor.set(0.5); // center
     sprite.position = {x: hex.x, y: hex.y};
     // add to stage
@@ -418,7 +418,6 @@ export class MapComponent implements OnInit {
     // add hexes to list
     let traverser = [
       fromCoordinates(coords),
-      //TODO: add other tiles (mostly just spire spots) depending on rotation
       this.rotatedMove(Direction.SE, rotation),
       this.rotatedMove(Direction.SE, rotation),
       this.rotatedMove(Direction.W, rotation),
