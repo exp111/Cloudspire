@@ -4,7 +4,7 @@ import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from 
 import * as PIXI from "pixi.js";
 import {Dict, Sprite} from "pixi.js";
 import {Viewport} from "pixi-viewport";
-import {Chip} from "../game/chip";
+import {Chip, Hero} from "../game/chip";
 import {Earthscape, HexGroup, Isle} from "../game/hex";
 import {Fortress} from "../game/fortress";
 
@@ -13,10 +13,11 @@ enum ZOrder {
   Tile = Background,
   Fortress = Tile,
   Earthscape = 1,
-  HexOverlay = 2,
+  HexOverlay,
   Chip = 3,
-  CoordinateOverlay = 4,
-  HoverOverlay = 5,
+  ChipOverlay = Chip + 1,
+  CoordinateOverlay,
+  HoverOverlay,
 }
 
 @Component({
@@ -78,7 +79,7 @@ export class MapComponent implements OnInit {
       screenHeight: window.innerHeight,
       worldWidth: this.WORLD_SIZE,
       worldHeight: this.WORLD_SIZE,
-      disableOnContextMenu: true,
+      disableOnContextMenu: true, // disable right click
 
       events: this.app.renderer.events // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
     });
@@ -149,7 +150,7 @@ export class MapComponent implements OnInit {
     await this.createEarthscape(16, 3, 10, true, 1);
     await this.createEarthscape(15, 4, 9, true, 2);
 
-    await this.createChip("awsh", 1, 7);
+    await this.createHero("awsh", 1, 7);
 
     // Hex overlay
     this.hexOverlay.zIndex = ZOrder.HexOverlay;
@@ -185,14 +186,14 @@ export class MapComponent implements OnInit {
   //TODO: move these into getter/setters?
   //TODO: replace tint with outline
   private selectChip(selected: Chip) {
-    selected.sprite.tint = 0xff0000;
+    selected.container.tint = 0xff0000;
     this.fakeChip.texture = selected.sprite.texture;
     this.selectedChip = selected;
   }
 
   private deselectChip(previouslySelected: Chip) {
     this.selectedChip = null;
-    previouslySelected.sprite.tint = 0xFFFFFF;
+    previouslySelected.container.tint = 0xFFFFFF;
     this.fakeChip.visible = false;
   }
 
@@ -221,7 +222,7 @@ export class MapComponent implements OnInit {
     this.chips[this.getKeyFromHex(selected.hex)] = null;
     this.chips[key] = selected;
     selected.hex = hex;
-    selected.sprite.position = {x: hex.x, y: hex.y};
+    selected.container.position = {x: hex.x, y: hex.y};
     this.deselectChip(selected);
   }
 
@@ -318,19 +319,37 @@ export class MapComponent implements OnInit {
     return scape;
   }
 
-  private async createChip(name: string, col: number, row: number) {
-    let hex = this.grid.getHex({col: col, row: row})!;
+  private async createChip(name: string, hex: Hex) : Promise<PIXI.Container> {
+    let container = new PIXI.Container();
+    container.position = {x: hex.x, y: hex.y};
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/chip/${name}_front.png`);
     // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
+    sprite.label = "sprite";
     sprite.scale = (this.HEX_SIZE * this.SPRITE_CHIP_MULT) / sprite.width;
     sprite.zIndex = ZOrder.Chip;
     sprite.eventMode = "static";
     sprite.anchor.set(0.5);
-    sprite.position = {x: hex.x, y: hex.y};
-    this.viewport.addChild(sprite);
+    container.addChild(sprite);
+    this.viewport.addChild(container);
+    return container;
+  }
+
+  private async createHero(name: string, col: number, row: number) {
+    let hex = this.grid.getHex({col: col, row: row})!;
+    let container = await this.createChip(name, hex);
     // add chip to list
-    let chip = new Chip(hex, sprite);
+    let chip = new Hero(hex, container, name);
     this.chips[this.getKeyFromPos(col, row)] = chip;
+    // add labels
+    let health = new PIXI.Text({
+      text: chip.health
+    });
+    health.label = "health";
+    health.zIndex = ZOrder.ChipOverlay;
+    health.style = {
+      fill: {color: 0xff0000},
+    };
+    container.addChild(health);
     return chip;
   }
 

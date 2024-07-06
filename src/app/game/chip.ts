@@ -5,13 +5,15 @@ import {ChipData, HeroData} from "../../data/data";
 import {Sprite} from "pixi.js";
 
 export class Chip {
+  container: PIXI.Container;
   sprite: PIXI.Sprite;
   hex: Hex;
   data: ChipData;
 
-  constructor(hex: Hex, sprite: PIXI.Sprite, name: string) {
+  constructor(hex: Hex, container: PIXI.Container, name: string) {
     this.hex = hex;
-    this.sprite = sprite;
+    this.container = container;
+    this.sprite = container.getChildByName("sprite") as Sprite;
     // get data from db
     this.data = AllFactions.Chips.find(h => h.name === name)!;
   }
@@ -21,8 +23,8 @@ export class Hero extends Chip {
   override data: HeroData;
   health: number;
 
-  constructor(hex: Hex, sprite: PIXI.Sprite, name: string) {
-    super(hex, sprite, name);
+  constructor(hex: Hex, container: PIXI.Container, name: string) {
+    super(hex, container, name);
     // get data from db
     this.data = AllFactions.Heroes.find(h => h.name === name)!;
     this.health = this.data.health;
