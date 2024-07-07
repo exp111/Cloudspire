@@ -34,24 +34,35 @@ export class Chip {
 
 export class Landmark extends Chip {
   override data: LandmarkData;
+  health: number;
+  attack: number;
 
   constructor(hex: GameHex, container: PIXI.Container, name: string) {
     super(hex, container, name);
     // get data from db
     this.data = Data.Landmarks.find(h => h.name === name)!;
+    this.health = this.data.health;
+    this.attack = this.data.attack;
   }
 }
 
 export class Spire extends Chip {
   override data: SpireData;
+  attack: number;
+  fortification: number;
+  range: number;
 
   constructor(hex: GameHex, container: PIXI.Container, name: string) {
     super(hex, container, name);
     // get data from db
     this.data = Data.Spires.find(h => h.name === name)!;
+    this.attack = this.data.attack;
+    this.fortification = this.data.fortification;
+    this.range = this.data.range;
   }
 
   override canMoveToHex(hex: GameHex): boolean {
+    // can't move //TODO: talents?
     return false;
   }
 }
@@ -59,6 +70,8 @@ export class Spire extends Chip {
 export class Hero extends Chip {
   override data: HeroData;
   health: number;
+  attack: number;
+  range: number;
   promoted: boolean = false;
 
   constructor(hex: GameHex, container: PIXI.Container, name: string) {
@@ -66,6 +79,8 @@ export class Hero extends Chip {
     // get data from db
     this.data = Data.Heroes.find(h => h.name === name)!;
     this.health = this.data.health;
+    this.attack = this.data.attack;
+    this.range = 1; //TODO: get from talent
   }
 
   static override getFileName(name: string) {

@@ -22,19 +22,22 @@ export class LandmarkData extends ChipData {
 }
 
 export class SpireData extends ChipData {
-  attack: number = 0;
-  fortification: number = 0;
-  range: number = 0;
+  attack!: number;
+  fortification!: number;
+  range!: number;
   capacity!: number;
 
   constructor(data: Partial<SpireData>) {
     super(data);
+    this.attack = this.attack ?? 0;
+    this.fortification = this.fortification ?? 0;
+    this.range = this.range ?? 0;
   }
 }
 
 export class HeroData extends ChipData {
   health!: number;
-  attack: number = 0;
+  attack!: number;
   movement!: number;
   capacity!: number;
   allowance!: Terrain;
@@ -47,6 +50,7 @@ export class HeroData extends ChipData {
 
   constructor(data: Partial<HeroData>) {
     super(data);
+    this.attack = this.attack ?? 0;
     this.promotedReward = this.promotedReward ?? this.reward;
     this.promotedHealth = this.promotedHealth ?? this.health;
     this.promotedAttack = this.promotedAttack ?? this.attack;

@@ -21,6 +21,22 @@ enum ZOrder {
   Debug
 }
 
+enum Colors {
+  Black = 0x000000,
+  White = 0xFFFFFF,
+  Red = 0xFF0000,
+  Orange = 0xFFA500,
+  Green = 0x00FF00,
+  Yellow = 0xFFFF00,
+
+  Highlight = Red,
+
+  Health = 0xE71C41,
+  Attack = 0xF05423,
+  Range = 0x1E9588,
+  Fortification = 0xF8C750
+}
+
 @Component({
   selector: 'app-map',
   standalone: true,
@@ -174,14 +190,14 @@ export class MapComponent implements OnInit {
         return;
       }
       this.hexOverlay.poly(hex.corners);
-      this.hexOverlay.stroke({width: 2, color: 0x000000});
+      this.hexOverlay.stroke({width: 2, color: Colors.Black});
       if (this.showHexCenters) {
         this.hexOverlay.circle(hex.x, hex.y, 2);
-        this.hexOverlay.fill({color: 0xff0000});
+        this.hexOverlay.fill({color: Colors.Red});
       }
       if (this.showCoordLabels) {
-        this.debugText(`${hex.col},${hex.row}`,
-          this.hexes[key] ? 0xff0000 : 0x00ff00,
+        this.debugLabel(`${hex.col},${hex.row}`,
+          this.hexes[key] ? Colors.Red : Colors.Green,
           {x: hex.x, y: hex.y},
           ZOrder.CoordinateOverlay);
       }
@@ -194,14 +210,14 @@ export class MapComponent implements OnInit {
   //TODO: move these into getter/setters?
   //TODO: replace tint with outline
   private selectChip(selected: Chip) {
-    selected.container.tint = 0xff0000;
+    selected.container.tint = Colors.Highlight;
     this.fakeChip.texture = selected.sprite.texture;
     this.selectedChip = selected;
   }
 
   private deselectChip(previouslySelected: Chip) {
     this.selectedChip = null;
-    previouslySelected.container.tint = 0xFFFFFF;
+    previouslySelected.container.tint = Colors.White;
     this.fakeChip.visible = false;
   }
 
@@ -288,15 +304,27 @@ export class MapComponent implements OnInit {
     return move(this.DirectionFromAngle(this.DirectionToAngle(dir) + rotation * 60));
   }
 
-  debugText(text: string, color: ColorSource, pos: PointData, zIndex: ZOrder = ZOrder.Debug) {
-    let lbl = new PIXI.Text({
+  label(text: string, color: ColorSource, strokeColor: ColorSource|null, pos: PointData, zIndex: ZOrder, label?: string) {
+    return new PIXI.Text({
       text: text,
       position: pos,
-      anchor: 0.5
+      anchor: 0.5,
+      zIndex: zIndex,
+      label: label,
+      style: {
+        stroke: strokeColor != null ? {color: strokeColor, width: 3} : undefined,
+        fill: {color: color}
+      }
     });
-    lbl.style = {fill: {color: color}}
-    lbl.zIndex = zIndex;
-    this.viewport.addChild(lbl);
+  }
+  debugLabel(text: string, color: ColorSource, pos: PointData, zIndex: ZOrder = ZOrder.Debug) {
+    this.viewport.addChild(this.label(text, color, null, pos, zIndex));
+  }
+
+  relativeCorner(chip: Chip, i: number, perc: number = 1.0) {
+    let pos = chip.container.position;
+    let corner = chip.hex.hex.corners[i];
+    return {x: (pos.x - corner.x) * perc, y: (pos.y - corner.y) * perc}
   }
 
   //TODO: move these into the specific subclasses?
@@ -402,15 +430,31 @@ export class MapComponent implements OnInit {
     let chip = new Hero(hex, container, name);
     this.chips[this.getKeyFromPos(col, row)] = chip;
     // add labels
-    let health = new PIXI.Text({
-      text: chip.health
-    });
-    health.label = "health";
-    health.zIndex = ZOrder.ChipOverlay;
-    health.style = {
-      fill: {color: 0xff0000},
-    };
-    container.addChild(health);
+    container.addChild(this.label(
+      chip.health.toString(),
+      Colors.Health,
+      Colors.Black,
+      this.relativeCorner(chip, 1, 0.9),
+      ZOrder.ChipOverlay,
+      "health"
+    ));
+    container.addChild(this.label(
+      chip.attack.toString(),
+      Colors.Attack,
+      Colors.Black,
+      this.relativeCorner(chip, 2, 0.9),
+      ZOrder.ChipOverlay,
+      "attack"
+    ));
+    //TODO: hide if melee?
+    container.addChild(this.label(
+      chip.range.toString(),
+      Colors.Range,
+      Colors.Black,
+      this.relativeCorner(chip, 3, 0.9),
+      ZOrder.ChipOverlay,
+      "range"
+    ));
     return chip;
   }
 
@@ -420,6 +464,23 @@ export class MapComponent implements OnInit {
     // add chip to list
     let chip = new Landmark(hex, container, name);
     this.chips[this.getKeyFromPos(col, row)] = chip;
+    // add labels
+    container.addChild(this.label(
+      chip.health.toString(),
+      Colors.Health,
+      Colors.Black,
+      this.relativeCorner(chip, 1, 0.9),
+      ZOrder.ChipOverlay,
+      "health"
+    ));
+    container.addChild(this.label(
+      chip.attack.toString(),
+      Colors.Attack,
+      Colors.Black,
+      this.relativeCorner(chip, 2, 0.9),
+      ZOrder.ChipOverlay,
+      "attack"
+    ));
     return chip;
   }
 
@@ -429,6 +490,31 @@ export class MapComponent implements OnInit {
     // add chip to list
     let chip = new Spire(hex, container, name);
     this.chips[this.getKeyFromPos(col, row)] = chip;
+    container.addChild(this.label(
+      chip.attack.toString(),
+      Colors.Attack,
+      Colors.Black,
+      this.relativeCorner(chip, 1, 0.9),
+      ZOrder.ChipOverlay,
+      "attack"
+    ));
+    container.addChild(this.label(
+      chip.fortification.toString(),
+      Colors.Fortification,
+      Colors.Black,
+      this.relativeCorner(chip, 2, 0.9),
+      ZOrder.ChipOverlay,
+      "fortification"
+    ));
+    //TODO: hide if melee?
+    container.addChild(this.label(
+      chip.range.toString(),
+      Colors.Range,
+      Colors.Black,
+      this.relativeCorner(chip, 3, 0.9),
+      ZOrder.ChipOverlay,
+      "range"
+    ));
     return chip;
   }
 
