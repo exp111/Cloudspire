@@ -21,6 +21,17 @@ export class LandmarkMinionData extends ChipData {
   }
 }
 
+export class SpireData extends ChipData {
+  attack: number = 0;
+  fortification: number = 0;
+  range: number = 0;
+  capacity!: number;
+
+  constructor(data: Partial<SpireData>) {
+    super(data);
+  }
+}
+
 export class HeroData extends ChipData {
   health!: number;
   attack: number = 0;

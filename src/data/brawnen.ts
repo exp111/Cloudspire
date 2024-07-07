@@ -8,7 +8,7 @@ class BrawnenHero extends HeroData {
 
 export class BrawnenFaction implements FactionData {
   heroes = [
-    new BrawnenHero({faction: Factions.BRAWNEN,
+    new BrawnenHero({
       name: "Awsh",
       cost: 0,
       reward: 3,
