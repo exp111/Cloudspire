@@ -31,7 +31,7 @@ export class SpireData extends ChipData {
     super(data);
     this.attack = this.attack ?? 0;
     this.fortification = this.fortification ?? 0;
-    this.range = this.range ?? 0;
+    this.range = this.range ?? 1; // defaults to 1
   }
 }
 
