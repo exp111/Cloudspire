@@ -1,20 +1,23 @@
-import * as PIXI from "pixi.js";
-import {Sprite} from "pixi.js";
-import {ChipData, HeroData, LandmarkData, SpireData} from "../../data/model/chip";
-import {Data} from "../../data/data";
+import {ChipData, HeroData, LandmarkData, SpireData} from "../../../data/model/chip";
+import {Data} from "../../../data/data";
 import {GameHex} from "./hex";
-import {Terrain} from "../../data/enums";
+import {Terrain} from "../../../data/enums";
+import {GameElement} from "./game";
 
-export class Chip {
-  container: PIXI.Container;
-  sprite: PIXI.Sprite;
+export enum ChipType {
+  HERO,
+  MINION,
+  SPIRE,
+  LANDMARK
+}
+export abstract class Chip extends GameElement {
+  abstract type: ChipType;
   hex: GameHex;
   data: ChipData;
 
-  constructor(hex: GameHex, container: PIXI.Container, name: string) {
+  protected constructor(hex: GameHex, name: string) {
+    super();
     this.hex = hex;
-    this.container = container;
-    this.sprite = container.getChildByName("sprite") as Sprite;
     // get data from db
     this.data = Data.Chips.find(h => h.name === name)!;
   }
@@ -23,22 +26,19 @@ export class Chip {
     return hex.terrain == Terrain.Path;
   }
 
-  static sanitizeName(name: string) {
-    return name.toLowerCase().replace(" ", "_");
-  }
-
-  static getFileName(name: string) {
-    return `chip/${Chip.sanitizeName(name)}.png`;
+  override getFileName() {
+    return `chip/${Chip.sanitizeName(this.data.name)}.png`;
   }
 }
 
 export class Landmark extends Chip {
+  override type = ChipType.LANDMARK;
   override data: LandmarkData;
   health: number;
   attack: number;
 
-  constructor(hex: GameHex, container: PIXI.Container, name: string) {
-    super(hex, container, name);
+  constructor(hex: GameHex, name: string) {
+    super(hex, name);
     // get data from db
     this.data = Data.Landmarks.find(h => h.name === name)!;
     this.health = this.data.health;
@@ -47,13 +47,14 @@ export class Landmark extends Chip {
 }
 
 export class Spire extends Chip {
+  override type = ChipType.SPIRE;
   override data: SpireData;
   attack: number;
   fortification: number;
   range: number;
 
-  constructor(hex: GameHex, container: PIXI.Container, name: string) {
-    super(hex, container, name);
+  constructor(hex: GameHex, name: string) {
+    super(hex, name);
     // get data from db
     this.data = Data.Spires.find(h => h.name === name)!;
     this.attack = this.data.attack;
@@ -68,14 +69,15 @@ export class Spire extends Chip {
 }
 
 export class Hero extends Chip {
+  override type = ChipType.HERO;
   override data: HeroData;
   health: number;
   attack: number;
   range: number;
   promoted: boolean = false;
 
-  constructor(hex: GameHex, container: PIXI.Container, name: string) {
-    super(hex, container, name);
+  constructor(hex: GameHex, name: string) {
+    super(hex, name);
     // get data from db
     this.data = Data.Heroes.find(h => h.name === name)!;
     this.health = this.data.health;
@@ -83,9 +85,9 @@ export class Hero extends Chip {
     this.range = 1; //TODO: get from talent
   }
 
-  static override getFileName(name: string) {
+  override getFileName() {
     //TODO: backside?
-    return `chip/${Chip.sanitizeName(name)}_front.png`;
+    return `chip/${Hero.sanitizeName(this.data.name)}_front.png`;
   }
 
   override canMoveToHex(hex: GameHex): boolean {
