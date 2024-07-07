@@ -210,14 +210,14 @@ export class MapComponent implements OnInit {
   //TODO: move these into getter/setters?
   //TODO: replace tint with outline
   private selectChip(selected: Chip) {
-    selected.container.tint = Colors.Highlight;
+    selected.sprite.tint = Colors.Highlight;
     this.fakeChip.texture = selected.sprite.texture;
     this.selectedChip = selected;
   }
 
   private deselectChip(previouslySelected: Chip) {
     this.selectedChip = null;
-    previouslySelected.container.tint = Colors.White;
+    previouslySelected.sprite.tint = Colors.White;
     this.fakeChip.visible = false;
   }
 
