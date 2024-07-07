@@ -4,7 +4,7 @@ import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from 
 import * as PIXI from "pixi.js";
 import {ColorSource, Dict, PointData, Sprite} from "pixi.js";
 import {Viewport} from "pixi-viewport";
-import {Chip, Hero} from "../game/chip";
+import {Chip, Hero, Landmark} from "../game/chip";
 import {Earthscape, GameHex, Isle} from "../game/hex";
 import {Fortress} from "../game/fortress";
 
@@ -370,13 +370,11 @@ export class MapComponent implements OnInit {
     return scape;
   }
 
-  private async createChip(name: string, hex: Hex) : Promise<PIXI.Container> {
+  private async createChip(fileName: string, hex: Hex) : Promise<PIXI.Container> {
     let container = new PIXI.Container();
     container.zIndex = ZOrder.Chip;
     container.position = {x: hex.x, y: hex.y};
-    let fileName = name.toLowerCase().replace(" ", "_");
-    //TODO: get name dynamically from class
-    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/chip/${fileName}_front.png`);
+    let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/${fileName}`);
     // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
     sprite.label = "sprite";
     sprite.scale = (this.HEX_SIZE * this.SPRITE_CHIP_MULT) / sprite.width;
@@ -390,7 +388,7 @@ export class MapComponent implements OnInit {
 
   private async createHero(name: string, col: number, row: number) {
     let hex = this.hexes[this.getKeyFromPos(col, row)]!;
-    let container = await this.createChip(name, hex.hex);
+    let container = await this.createChip(Hero.getFileName(name), hex.hex);
     // add chip to list
     let chip = new Hero(hex, container, name);
     this.chips[this.getKeyFromPos(col, row)] = chip;
@@ -409,10 +407,9 @@ export class MapComponent implements OnInit {
 
   private async createLandmark(name: string, col: number, row: number) {
     let hex = this.hexes[this.getKeyFromPos(col, row)]!;
-    let container = await this.createChip(name, hex.hex);
+    let container = await this.createChip(Landmark.getFileName(name), hex.hex);
     // add chip to list
-    //TODO: landmark class
-    let chip = new Chip(hex, container, name);
+    let chip = new Landmark(hex, container, name);
     this.chips[this.getKeyFromPos(col, row)] = chip;
     return chip;
   }
