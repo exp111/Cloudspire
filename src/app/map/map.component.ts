@@ -331,7 +331,9 @@ export class MapComponent implements OnInit {
     let i = 0;
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
-      let hex = new GameHex(h, isle, isle.data.terrain[i]);
+      let terrain = isle.data.terrain[i];
+      let hasSource = isle.data.source[i];
+      let hex = new GameHex(h, isle, terrain, hasSource ?? false);
       isle.hexes[key] = hex;
       this.hexes[key] = hex;
       this.isles[key] = isle;
@@ -364,7 +366,10 @@ export class MapComponent implements OnInit {
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
       // offset the terrain index by the rotation
-      let hex = new GameHex(h, scape, scape.data.terrain[(i + (rotation * 2)) % scape.data.terrain.length]);
+      let index = (i + (rotation * 2)) % scape.data.terrain.length;
+      let terrain = scape.data.terrain[index];
+      let hasSource = scape.data.source[index];
+      let hex = new GameHex(h, scape, terrain, hasSource ?? false);
       scape.hexes[key] = hex;
       this.hexes[key] = hex;
       this.earthscapes[key] = scape;

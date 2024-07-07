@@ -8,7 +8,8 @@ import {Terrain} from "../../data/enums";
 export class GameHex {
   constructor(public hex: Hex,
               public parent: HexGroup,
-              public terrain: Terrain) {
+              public terrain: Terrain,
+              public hasSource: boolean) {
   }
 }
 

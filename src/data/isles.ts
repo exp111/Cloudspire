@@ -19,7 +19,10 @@ export class IslesData {
         Terrain.Forest,
         Terrain.Path,
         Terrain.Water,
-      ]
+      ],
+      source: {
+        0: true
+      }
     }),
     new IsleData({
       number: 2,
@@ -37,7 +40,11 @@ export class IslesData {
         Terrain.Grass,
         Terrain.Path,
         Terrain.Path,
-      ]
+      ],
+      source: {
+        0: true,
+        8: true
+      }
     }),
     new IsleData({
       number: 4,
@@ -55,7 +62,11 @@ export class IslesData {
         Terrain.Grass,
         Terrain.Water,
         Terrain.Path,
-      ]
+      ],
+      source: {
+        5: true,
+        9: true
+      }
     }),
     new IsleData({
       number: 8,
@@ -73,7 +84,11 @@ export class IslesData {
         Terrain.Mountain,
         Terrain.Path,
         Terrain.Path,
-      ]
+      ],
+      source: {
+        1: true,
+        3: true
+      }
     }),
   ];
 }

@@ -5,7 +5,7 @@ export abstract class HexGroupData {
 
   number!: number;
   terrain!: Terrain[];
-  //TODO: source wells??
+  source!: {[k: number]: boolean | undefined};
 
   protected constructor(data: Partial<HexGroupData>) {
     Object.assign(this, data);
