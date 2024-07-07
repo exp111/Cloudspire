@@ -50,6 +50,10 @@ export class Spire extends Chip {
     // get data from db
     this.data = Data.Spires.find(h => h.name === name)!;
   }
+
+  override canMoveToHex(hex: GameHex): boolean {
+    return false;
+  }
 }
 
 export class Hero extends Chip {
