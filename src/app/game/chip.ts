@@ -58,7 +58,7 @@ export class Spire extends Chip {
     this.data = Data.Spires.find(h => h.name === name)!;
     this.attack = this.data.attack;
     this.fortification = this.data.fortification;
-    this.range = this.data.range;
+    this.range = this.data.range + 1; // has 1 range by default with no chips
   }
 
   override canMoveToHex(hex: GameHex): boolean {
