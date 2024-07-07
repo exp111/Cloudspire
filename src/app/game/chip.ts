@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import {Sprite} from "pixi.js";
-import {ChipData, HeroData, LandmarkData} from "../../data/model/chip";
+import {ChipData, HeroData, LandmarkData, SpireData} from "../../data/model/chip";
 import {Data} from "../../data/data";
 import {GameHex} from "./hex";
 import {Terrain} from "../../data/enums";
@@ -26,6 +26,10 @@ export class Chip {
   static sanitizeName(name: string) {
     return name.toLowerCase().replace(" ", "_");
   }
+
+  static getFileName(name: string) {
+    return `chip/${Chip.sanitizeName(name)}.png`;
+  }
 }
 
 export class Landmark extends Chip {
@@ -36,9 +40,15 @@ export class Landmark extends Chip {
     // get data from db
     this.data = Data.Landmarks.find(h => h.name === name)!;
   }
+}
 
-  static getFileName(name: string) {
-    return `chip/${Chip.sanitizeName(name)}.png`;
+export class Spire extends Chip {
+  override data: SpireData;
+
+  constructor(hex: GameHex, container: PIXI.Container, name: string) {
+    super(hex, container, name);
+    // get data from db
+    this.data = Data.Spires.find(h => h.name === name)!;
   }
 }
 
@@ -54,7 +64,7 @@ export class Hero extends Chip {
     this.health = this.data.health;
   }
 
-  static getFileName(name: string) {
+  static override getFileName(name: string) {
     //TODO: backside?
     return `chip/${Chip.sanitizeName(name)}_front.png`;
   }

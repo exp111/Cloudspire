@@ -4,7 +4,7 @@ import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from 
 import * as PIXI from "pixi.js";
 import {ColorSource, Dict, PointData, Sprite} from "pixi.js";
 import {Viewport} from "pixi-viewport";
-import {Chip, Hero, Landmark} from "../game/chip";
+import {Chip, Hero, Landmark, Spire} from "../game/chip";
 import {Earthscape, GameHex, Isle} from "../game/hex";
 import {Fortress} from "../game/fortress";
 
@@ -161,6 +161,10 @@ export class MapComponent implements OnInit {
 
     await this.createHero("Awsh", 1, 7);
     await this.createLandmark("Thoraxx", 3, 6);
+    //TODO: starting upgrades
+    await this.createSpire("Reetall", 6, 1);
+    await this.createSpire("Shrubbery", 7, 5);
+    await this.createSpire("Shrubbery", 6, 6);
 
     // Hex overlay
     this.hexOverlay.zIndex = ZOrder.HexOverlay;
@@ -410,6 +414,15 @@ export class MapComponent implements OnInit {
     let container = await this.createChip(Landmark.getFileName(name), hex.hex);
     // add chip to list
     let chip = new Landmark(hex, container, name);
+    this.chips[this.getKeyFromPos(col, row)] = chip;
+    return chip;
+  }
+
+  private async createSpire(name: string, col: number, row: number) {
+    let hex = this.hexes[this.getKeyFromPos(col, row)]!;
+    let container = await this.createChip(Spire.getFileName(name), hex.hex);
+    // add chip to list
+    let chip = new Spire(hex, container, name);
     this.chips[this.getKeyFromPos(col, row)] = chip;
     return chip;
   }
