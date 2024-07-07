@@ -325,7 +325,7 @@ export class MapComponent implements OnInit {
       text,
       color,
       Colors.Black,
-      this.relativeCorner(chip, cornerIndex, 0.9),
+      this.relativeCorner(chip, cornerIndex, 0.85),
       ZOrder.ChipOverlay,
       type
     ));
