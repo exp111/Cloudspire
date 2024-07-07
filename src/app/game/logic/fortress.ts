@@ -1,5 +1,4 @@
 import {Hex} from "honeycomb-grid";
-import * as PIXI from "pixi.js";
 import {GameElement} from "./game";
 
 export class Fortress extends GameElement {

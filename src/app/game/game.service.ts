@@ -1,18 +1,25 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from "honeycomb-grid";
 import {Fortress} from "./logic/fortress";
 import {Dict} from "pixi.js";
-import {Chip, Hero, Landmark, Spire} from "./logic/chip";
-import {Earthscape, GameHex, HexGroup, Isle} from "./logic/hex";
+import {Chip} from "./logic/chips/chip";
+import {Earthscape, GameHex, Isle} from "./logic/hex";
+import {Landmark} from "./logic/chips/landmark";
+import {Spire} from "./logic/chips/spire";
+import {Hero} from "./logic/chips/hero";
 
 declare global {
-  interface Window { Game: GameService; }
+  interface Window {
+    Game: GameService;
+  }
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameService {
+  static Instance: GameService;
+
   HEX_SIZE = 154;
   hexBuilder = defineHex({dimensions: this.HEX_SIZE, origin: "topLeft"});
   grid!: Grid<Hex>;
@@ -23,20 +30,130 @@ export class GameService {
   isles: Dict<Isle | null> = {};
   earthscapes: Dict<Earthscape | null> = {};
   fortress: Dict<Fortress | null> = {};
-  elements: {fortress: Fortress[], chips: Chip[], isles: Isle[], earthscapes: Earthscape[]} = {
+  elements: { fortress: Fortress[], chips: Chip[], isles: Isle[], earthscapes: Earthscape[] } = {
     fortress: [],
     chips: [],
     isles: [],
     earthscapes: []
   }
 
+  selectedChip: Chip | null = null;
+  // Events //TODO: proper event class?
+  onChipSelected!: (c: Chip) => void;
+  onChipDeselected!: (c: Chip) => void;
+  onChipMoved!: (c:Chip, h:GameHex) => void;
+  onHidePreview!: () => void;
+  onShowPreview!: (h:GameHex) => void;
+
   constructor() {
+    GameService.Instance = this;
     window.Game = this;
     //TODO: load from scenario file
     this.grid = new Grid(this.hexBuilder, rectangle({width: 9, height: 14}));
     this.createScenario1();
   }
 
+  // Events
+  onHexClicked(hex: Hex) {
+    let key = this.getKeyFromHex(hex);
+    let gameHex = this.hexes[key];
+    // dont do anything if its outside of the map
+    if (!gameHex) {
+      return;
+    }
+
+    let chip = this.chips[this.getKeyFromHex(hex)];
+    if (chip) {
+      // forward to chip
+      this.onChipClicked(chip);
+      return;
+    }
+    // nothing on this hex => empty
+    let selected = this.selectedChip;
+    if (!selected) {
+      return;
+    }
+
+    // unit cant move here
+    if (!selected.canMoveToHex(gameHex)) {
+      return;
+    }
+    // move selected chip to here
+    this.moveChip(selected, gameHex);
+    this.deselectChip();
+  }
+
+  onHexHovered(hex: Hex) {
+    if (!this.selectedChip) {
+      return;
+    }
+
+    let key = this.getKeyFromHex(hex);
+    let gameHex = this.hexes[key];
+    // not inside the map
+    if (!gameHex) {
+      this.onHidePreview();
+      return;
+    }
+
+    // unit cant move here
+    if (!this.selectedChip.canMoveToHex(gameHex)) {
+      this.onHidePreview();
+      return;
+    }
+
+    let chip = this.chips[key];
+    if (chip) {
+      // dont show fakechip if any other chip is here
+      this.onHidePreview();
+      return;
+    }
+    this.onShowPreview(gameHex);
+  }
+
+  //TODO: we cant move this into the model class, so maybe into a chipService/Controller?
+  onChipClicked(chip: Chip) {
+    // select chip
+    let selected = this.selectedChip;
+    // unselect previous chip if one was selected
+    if (selected != null) {
+      this.deselectChip();
+    }
+    // if we clicked a new chip, select it
+    if (selected != chip) {
+      // only select if we werent selected
+      this.selectChip(chip);
+    }
+  }
+
+  // Functions
+  moveChip(chip: Chip, hex: GameHex) {
+    //TODO: displace?
+    this.chips[this.getKeyFromHex(chip.hex.hex)] = null;
+    this.chips[this.getKeyFromHex(hex.hex)] = chip;
+    chip.hex = hex;
+    this.onChipMoved(chip, hex);
+  }
+
+  deselectChip() {
+    // no chip selected
+    if (!this.selectedChip) {
+      return;
+    }
+
+    // send event
+    this.onChipDeselected(this.selectedChip);
+    // unselect
+    this.selectedChip = null;
+  }
+
+  selectChip(chip: Chip) {
+    this.selectedChip = chip;
+    // send event
+    this.onChipSelected(chip);
+  }
+
+  // Scenario
   createScenario1() {
     this.createFortress("grovetenders", 2, 2, 1);
     this.createFortress("brawnen", 4, 10, -1);
@@ -62,12 +179,13 @@ export class GameService {
   getKeyFromHex(hex: Hex) {
     return this.getKeyFromPos(hex.col, hex.row);
   }
+
   private getKeyFromPos(col: number, row: number) {
     return `${col},${row}`;
   }
 
   DirectionFromAngle(angle: number) {
-    let arr: {[k: number]: Direction} = {
+    let arr: { [k: number]: Direction } = {
       30: Direction.NE,
       90: Direction.E,
       150: Direction.SE,
@@ -79,10 +197,12 @@ export class GameService {
     angle = angle % 360;
     return arr[angle];
   }
+
   DirectionToAngle(dir: Direction) {
-    let arr = [0,30,90,150,180,210,270,330];
+    let arr = [0, 30, 90, 150, 180, 210, 270, 330];
     return arr[dir];
   }
+
   rotatedMove(dir: Direction, rotation: number) {
     return move(this.DirectionFromAngle(this.DirectionToAngle(dir) + rotation * 60));
   }

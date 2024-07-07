@@ -3,10 +3,14 @@ import {NgOptimizedImage} from "@angular/common";
 import * as PIXI from "pixi.js";
 import {ColorSource, PointData, Sprite} from "pixi.js";
 import {Viewport} from "pixi-viewport";
-import {Chip, ChipType, Hero, Landmark, Spire} from "../game/logic/chip";
-import {Earthscape, Isle} from "../game/logic/hex";
+import {Chip, ChipType} from "../game/logic/chips/chip";
+import {Earthscape, GameHex, Isle} from "../game/logic/hex";
 import {Fortress} from "../game/logic/fortress";
 import {GameService} from "../game/game.service";
+import {Landmark} from "../game/logic/chips/landmark";
+import {Spire} from "../game/logic/chips/spire";
+import {Hero} from "../game/logic/chips/hero";
+import {GameElement} from "../game/logic/game";
 
 enum ZOrder {
   Background = 0,
@@ -37,6 +41,12 @@ enum Colors {
   Fortification = 0xF8C750
 }
 
+declare global {
+  interface Window {
+    GameMap: MapComponent;
+  }
+}
+
 @Component({
   selector: 'app-map',
   standalone: true,
@@ -51,7 +61,8 @@ export class MapComponent implements OnInit {
   mapRef!: ElementRef;
 
   constructor(private game: GameService,
-    private renderer: Renderer2) {
+              private renderer: Renderer2) {
+    window.GameMap = this;
   }
 
   RESOURCE_BASE_PATH = "assets";
@@ -68,7 +79,6 @@ export class MapComponent implements OnInit {
   hexOverlay = new PIXI.Graphics();
 
   sprites: PIXI.Container[] = [];
-  selectedChip: Chip | null = null;
   fakeChip!: Sprite;
 
   async ngOnInit() {
@@ -107,48 +117,30 @@ export class MapComponent implements OnInit {
       alpha: 0.5
     });
     this.viewport.addChild(this.fakeChip);
-    /*this.viewport.onpointertap = (e) => {
+    // Listen to events
+    /// UI
+    this.viewport.onpointertap = (e) => {
       let hex = this.game.grid.pointToHex(this.viewport.toWorld(e.screen), {allowOutside: false});
       if (hex) {
         e.stopPropagation(); // stop bubbling
-        this.onHexClicked(hex);
+        this.game.onHexClicked(hex);
       }
     }
     //TODO: rather than a hover, let user select chip and then show all possible options
     this.viewport.onmouseover = (e) => {
-      if (!this.selectedChip) {
-        return;
-      }
-
-      //TODO: fix fakechip not moving sometimes
       let hex = this.game.grid.pointToHex(this.viewport.toWorld(e.screen), {allowOutside: false});
-      if (!hex) {
-        return;
+      if (hex) {
+        e.stopPropagation(); // stop bubbling
+        this.game.onHexHovered(hex);
       }
+    }
 
-      let key = this.getKeyFromHex(hex);
-      let gamehex = this.hexes[key];
-      // not inside the map
-      if (!gamehex) {
-        this.fakeChip.visible = false;
-        return;
-      }
-
-      // unit cant move here
-      if (!this.selectedChip.canMoveToHex(gamehex)) {
-        this.fakeChip.visible = false;
-        return;
-      }
-
-      let chip = this.chips[key];
-      if (chip) {
-        // dont show fakechip if any other chip is here
-        this.fakeChip.visible = false;
-        return;
-      }
-      this.fakeChip.visible = true;
-      this.fakeChip.position = {x: hex.x, y: hex.y};
-    }*/
+    /// Game
+    this.game.onChipSelected = this.selectChip.bind(this);
+    this.game.onChipDeselected = this.deselectChip.bind(this);
+    this.game.onChipMoved = this.moveChip.bind(this);
+    this.game.onHidePreview = this.hidePreview.bind(this);
+    this.game.onShowPreview = this.showPreview.bind(this);
 
     // Build map
     for (let fortress of this.game.elements.fortress) {
@@ -173,7 +165,7 @@ export class MapComponent implements OnInit {
           await this.createSpire(chip as Spire);
           break;
         default:
-          console.error(`Unknwon type: ${chip.type}`);
+          console.error(`Unknown type: ${chip.type}`);
           break;
       }
     }
@@ -203,75 +195,46 @@ export class MapComponent implements OnInit {
     //TODO: center/fit view?
   }
 
-  //TODO: move these into getter/setters?
+  // Functions
   //TODO: replace tint with outline
-/*  private selectChip(selected: Chip) {
-    selected.sprite.tint = Colors.Highlight;
-    this.fakeChip.texture = selected.sprite.texture;
-    this.selectedChip = selected;
+  private selectChip(chip: Chip) {
+    let sprite = this.getChipSprite(chip);
+    sprite.tint = Colors.Highlight;
+    this.fakeChip.texture = sprite.texture;
   }
 
-  private deselectChip(previouslySelected: Chip) {
-    this.selectedChip = null;
-    previouslySelected.sprite.tint = Colors.White;
+  private deselectChip(chip: Chip) {
+    let sprite = this.getChipSprite(chip);
+    sprite.tint = Colors.White;
     this.fakeChip.visible = false;
-  }*/
-
-  // Events
-  //TODO: put the sub functions into class events
-/*  private onHexClicked(hex: Hex) {
-    let key = this.getKeyFromHex(hex);
-    let gameHex = this.hexes[key];
-    // dont do anything if its outside of the map
-    if (!gameHex) {
-      return;
-    }
-
-    let chip = this.chips[this.getKeyFromHex(hex)];
-    if (chip) {
-      // forward to chip
-      this.onChipClicked(chip);
-      return;
-    }
-    // nothing on this hex => empty
-    let selected = this.selectedChip;
-    if (!selected) {
-      return;
-    }
-
-    // unit cant move here
-    if (!selected.canMoveToHex(gameHex)) {
-      return;
-    }
-    // move selected chip to here
-    this.chips[this.getKeyFromHex(selected.hex.hex)] = null;
-    this.chips[key] = selected;
-    selected.hex = gameHex;
-    selected.container.position = {x: hex.x, y: hex.y};
-    this.deselectChip(selected);
   }
 
-  private onChipClicked(chip: Chip) {
-    // select chip
-    let selected = this.selectedChip;
-    // unselect previous chip if one was selected
-    if (selected != null) {
-      this.deselectChip(selected);
-    }
-    // if we clicked a new chip, select it
-    if (selected != chip) {
-      // only select if we werent selected
-      this.selectChip(chip);
-    }
-  }*/
+  private moveChip(chip: Chip, hex: GameHex) {
+    this.getElementContainer(chip).position = {x: hex.hex.x, y: hex.hex.y};
+  }
+
+  private hidePreview() {
+    this.fakeChip.visible = false;
+  }
+
+  private showPreview(hex: GameHex) {
+    this.fakeChip.visible = true;
+    this.fakeChip.position = {x: hex.hex.x, y: hex.hex.y};
+  }
 
   // Helpers
+  private getElementContainer(el: GameElement) {
+    return this.sprites[el.uid];
+  }
+  private getChipSprite(chip: Chip) {
+    return this.getElementContainer(chip).getChildByName("sprite")! as PIXI.Sprite;
+  }
   private async loadSpriteFromUrl(url: string) {
     let texture = await PIXI.Assets.load(url);
     return PIXI.Sprite.from(texture);
   }
 
-  label(text: PIXI.TextString, color: ColorSource, strokeColor: ColorSource|null, pos: PointData, zIndex: ZOrder, label?: string) {
+  label(text: PIXI.TextString, color: ColorSource, strokeColor: ColorSource | null, pos: PointData, zIndex: ZOrder, label?: string) {
     return new PIXI.Text({
       text: text,
       position: pos,
@@ -284,9 +247,11 @@ export class MapComponent implements OnInit {
       }
     });
   }
+
   debugLabel(text: string, color: ColorSource, pos: PointData, zIndex: ZOrder = ZOrder.Debug) {
     this.viewport.addChild(this.label(text, color, null, pos, zIndex));
   }
+
   chipOverlay(chip: Chip, text: PIXI.TextString, color: Colors, type: string, cornerIndex: number) {
     this.sprites[chip.uid].addChild(this.label(
       text,
@@ -334,7 +299,7 @@ export class MapComponent implements OnInit {
     return sprite;
   }
 
-  private async createChip(chip: Chip) : Promise<PIXI.Container> {
+  private async createChip(chip: Chip): Promise<PIXI.Container> {
     let container = new PIXI.Container();
     container.zIndex = ZOrder.Chip;
     container.position = {x: chip.hex.hex.x, y: chip.hex.hex.y};
