@@ -11,6 +11,12 @@ export enum ChipType {
   LANDMARK
 }
 
+export enum UpgradeType {
+  ATTACK,
+  RANGE,
+  FORTIFICATION
+}
+
 export abstract class Chip extends GameElement {
   abstract type: ChipType;
   hex: GameHex;
@@ -30,4 +36,7 @@ export abstract class Chip extends GameElement {
   override getFileName() {
     return `chip/${Chip.sanitizeName(this.data.name)}.png`;
   }
+
+  //TODO: automated pathfinding calc is a bit fucky as the neighbours function doesnt exist and spiral/ring traverse is fucked
+  // also we'd need to give like 3 parameters from game service to here as to get any possibility to calculate shit
 }

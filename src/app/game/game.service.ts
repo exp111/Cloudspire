@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from "honeycomb-grid";
 import {Fortress} from "./logic/fortress";
 import {Dict} from "pixi.js";
-import {Chip} from "./logic/chips/chip";
+import {Chip, UpgradeType} from "./logic/chips/chip";
 import {Earthscape, GameHex, Isle} from "./logic/hex";
 import {Landmark} from "./logic/chips/landmark";
 import {Spire} from "./logic/chips/spire";
@@ -169,10 +169,9 @@ export class GameService {
 
     this.createHero("Awsh", 1, 7);
     this.createLandmark("Thoraxx", 3, 6);
-    //TODO: starting upgrades
-    this.createSpire("Reetall", 6, 1);
-    this.createSpire("Shrubbery", 7, 5);
-    this.createSpire("Shrubbery", 6, 6);
+    this.createSpire("Reetall", 6, 1, [UpgradeType.ATTACK, UpgradeType.RANGE, UpgradeType.RANGE]);
+    this.createSpire("Shrubbery", 7, 5, [UpgradeType.FORTIFICATION, UpgradeType.FORTIFICATION]);
+    this.createSpire("Shrubbery", 6, 6, [UpgradeType.FORTIFICATION, UpgradeType.FORTIFICATION]);
   }
 
   // Helpers
@@ -313,10 +312,10 @@ export class GameService {
     return chip;
   }
 
-  createSpire(name: string, col: number, row: number) {
+  createSpire(name: string, col: number, row: number, upgrades?: UpgradeType[]) {
     let hex = this.hexes[this.getKeyFromPos(col, row)]!;
     // add chip to list
-    let chip = new Spire(hex, name);
+    let chip = new Spire(hex, name, upgrades);
     this.chips[this.getKeyFromPos(col, row)] = chip;
     this.elements.chips.push(chip);
     return chip;
