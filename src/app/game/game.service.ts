@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from "honeycomb-grid";
 import {Fortress} from "./logic/fortress";
 import {Dict} from "pixi.js";
-import {Chip, UpgradeType} from "./logic/chips/chip";
+import {AttackUpgrade, Chip, FortificationUpgrade, HealthChip, RangeUpgrade} from "./logic/chips/chip";
 import {Earthscape, GameHex, Isle} from "./logic/hex";
 import {Landmark} from "./logic/chips/landmark";
 import {Spire} from "./logic/chips/spire";
@@ -129,7 +129,7 @@ export class GameService {
   // Functions
   moveChip(chip: Chip, hex: GameHex) {
     //TODO: displace?
-    this.chips[this.getKeyFromHex(chip.hex.hex)] = null;
+    this.chips[this.getKeyFromHex(chip.hex!.hex)] = null;
     this.chips[this.getKeyFromHex(hex.hex)] = chip;
     chip.hex = hex;
     this.onChipMoved(chip, hex);
@@ -167,11 +167,11 @@ export class GameService {
     this.createEarthscape(16, 3, 10, true, 1);
     this.createEarthscape(15, 4, 9, true, 2);
 
-    this.createHero("Awsh", 1, 7);
-    this.createLandmark("Thoraxx", 3, 6);
-    this.createSpire("Reetall", 6, 1, [UpgradeType.ATTACK, UpgradeType.RANGE, UpgradeType.RANGE]);
-    this.createSpire("Shrubbery", 7, 5, [UpgradeType.FORTIFICATION, UpgradeType.FORTIFICATION]);
-    this.createSpire("Shrubbery", 6, 6, [UpgradeType.FORTIFICATION, UpgradeType.FORTIFICATION]);
+    this.createHero("Awsh", 1, 7, [new HealthChip(), new HealthChip(), new HealthChip()]);
+    this.createLandmark("Thoraxx", 3, 6, [new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip()]);
+    this.createSpire("Reetall", 6, 1, [new AttackUpgrade(), new RangeUpgrade(), new RangeUpgrade()]);
+    this.createSpire("Shrubbery", 7, 5, [new FortificationUpgrade(), new FortificationUpgrade()]);
+    this.createSpire("Shrubbery", 6, 6, [new FortificationUpgrade(), new FortificationUpgrade()]);
   }
 
   // Helpers
@@ -294,25 +294,25 @@ export class GameService {
     return scape;
   }
 
-  createHero(name: string, col: number, row: number) {
+  createHero(name: string, col: number, row: number, chips?: Chip[]) {
     let hex = this.hexes[this.getKeyFromPos(col, row)]!;
     // add chip to list
-    let chip = new Hero(hex, name);
+    let chip = new Hero(hex, name, chips);
     this.chips[this.getKeyFromPos(col, row)] = chip;
     this.elements.chips.push(chip);
     return chip;
   }
 
-  createLandmark(name: string, col: number, row: number) {
+  createLandmark(name: string, col: number, row: number, chips?: Chip[]) {
     let hex = this.hexes[this.getKeyFromPos(col, row)]!;
     // add chip to list
-    let chip = new Landmark(hex, name);
+    let chip = new Landmark(hex, name, chips);
     this.chips[this.getKeyFromPos(col, row)] = chip;
     this.elements.chips.push(chip);
     return chip;
   }
 
-  createSpire(name: string, col: number, row: number, upgrades?: UpgradeType[]) {
+  createSpire(name: string, col: number, row: number, upgrades?: Chip[]) {
     let hex = this.hexes[this.getKeyFromPos(col, row)]!;
     // add chip to list
     let chip = new Spire(hex, name, upgrades);

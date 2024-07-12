@@ -1,43 +1,37 @@
 import {SpireData} from "../../../../data/model/chip";
 import {GameHex} from "../hex";
 import {Data} from "../../../../data/data";
-import {Chip, ChipType, UpgradeType} from "./chip";
+import {AttackUpgrade, Chip, ChipType, ContainerChip, FortificationUpgrade, RangeUpgrade, UpgradeChip} from "./chip";
 
-export class Spire extends Chip {
+export class Spire extends ContainerChip {
   override type = ChipType.SPIRE;
   override data: SpireData;
   attack!: number;
   fortification!: number;
   range!: number;
-  // list of upgrade chips from top to bottom
-  upgrades: UpgradeType[];
 
-  constructor(hex: GameHex, name: string, upgrades?: UpgradeType[]) {
-    super(hex, name);
+  constructor(hex: GameHex, name: string, upgrades?: Chip[]) {
+    super(hex, name, upgrades);
     // get data from db
     this.data = Data.Spires.find(h => h.name === name)!;
-    if (upgrades) {
-      // upgrades are given, dont use default starting ones
-      this.upgrades = [...upgrades];
-    } else {
-      // use default starting ones
-      this.upgrades = Array(this.data.attack + this.data.range + this.data.fortification);
-      this.upgrades.fill(UpgradeType.ATTACK, 0, this.data.attack);
-      this.upgrades.fill(UpgradeType.RANGE, this.data.attack, this.data.attack + this.data.range);
-      this.upgrades.fill(UpgradeType.FORTIFICATION, this.data.attack + this.data.range + 1);
-    }
     this.calculateStats();
   }
 
   calculateStats() {
-    this.attack = this.upgrades.filter(u => u == UpgradeType.ATTACK).length;
-    this.fortification = this.upgrades.filter(u => u == UpgradeType.FORTIFICATION).length;
+    this.attack = this.countOfChip(ChipType.UPGRADE_ATTACK);
+    this.fortification = this.countOfChip(ChipType.UPGRADE_FORTIFICATION);
     // has 1 range by default with no chips
-    this.range = this.upgrades.filter(u => u == UpgradeType.RANGE).length + 1;
+    this.range = this.countOfChip(ChipType.UPGRADE_RANGE) + 1;
   }
 
   override canMoveToHex(hex: GameHex): boolean {
     // can't move //TODO: talents?
     return false;
+  }
+
+  createDefaultChips(): void {
+    this.addChips(AttackUpgrade, this.data.attack);
+    this.addChips(FortificationUpgrade, this.data.fortification);
+    this.addChips(RangeUpgrade, this.data.range);
   }
 }

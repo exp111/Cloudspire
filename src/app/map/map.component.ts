@@ -265,7 +265,7 @@ export class MapComponent implements OnInit {
 
   relativeCorner(chip: Chip, i: number, percent: number = 1.0) {
     let pos = this.sprites[chip.uid].position;
-    let corner = chip.hex.hex.corners[i];
+    let corner = chip.hex!.hex.corners[i];
     return {x: (pos.x - corner.x) * percent, y: (pos.y - corner.y) * percent}
   }
 
@@ -302,7 +302,7 @@ export class MapComponent implements OnInit {
   private async createChip(chip: Chip): Promise<PIXI.Container> {
     let container = new PIXI.Container();
     container.zIndex = ZOrder.Chip;
-    container.position = {x: chip.hex.hex.x, y: chip.hex.hex.y};
+    container.position = {x: chip.hex!.hex.x, y: chip.hex!.hex.y};
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/${chip.getFileName()}`);
     // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
     sprite.label = "sprite";
@@ -321,6 +321,7 @@ export class MapComponent implements OnInit {
     let container = await this.createChip(hero);
     // add labels
     this.chipOverlay(hero, hero.health, Colors.Health, "health", 1);
+    this.chipOverlay(hero, hero.fortification, Colors.Fortification, "fortification", 0);
     this.chipOverlay(hero, hero.attack, Colors.Attack, "attack", 2);
     this.chipOverlay(hero, hero.range, Colors.Range, "range", 3);
     return container;
