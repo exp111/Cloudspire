@@ -1,5 +1,5 @@
 import {LandmarkData} from "./model/chip";
-import {Factions} from "./enums";
+import {FactionType} from "./enums";
 
 export class LandmarksData {
   //TODO: swamp, ruins, temple
@@ -13,7 +13,7 @@ export class LandmarksData {
   ];
   static Traxxyr = new LandmarkData({
     name: "Ancient Traxxyr",
-    faction: Factions.NEUTRAL,
+    faction: FactionType.NEUTRAL,
     reward: 6
     //TODO: relic reward
   });

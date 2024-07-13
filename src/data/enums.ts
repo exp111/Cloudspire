@@ -7,7 +7,7 @@ export enum Terrain {
   Water
 }
 
-export enum Factions {
+export enum FactionType {
   NEUTRAL,
   BRAWNEN,
   GROVETENDERS,

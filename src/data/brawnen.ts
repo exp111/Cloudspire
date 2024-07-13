@@ -1,14 +1,16 @@
 import {FactionData} from "./model/faction";
 import {HeroData} from "./model/chip";
-import {Factions, Terrain} from "./enums";
+import {FactionType, Terrain} from "./enums";
 
-class BrawnenHero extends HeroData {
-  override faction = Factions.BRAWNEN;
+class BrawnenHeroData extends HeroData {
+  override faction = FactionType.BRAWNEN;
 }
 
-export class BrawnenFaction implements FactionData {
+export class BrawnenFactionData implements FactionData {
+  type = FactionType.BRAWNEN;
+
   heroes = [
-    new BrawnenHero({
+    new BrawnenHeroData({
       name: "Awsh",
       cost: 0,
       reward: 3,

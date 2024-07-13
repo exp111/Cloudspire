@@ -1,27 +1,32 @@
-import {BrawnenFaction} from "./brawnen";
+import {BrawnenFactionData} from "./brawnen";
 
 import {IslesData} from "./isles";
 import {EarthscapesData} from "./earthscapes";
 import {LandmarksData} from "./landmark";
 import {ChipData, HeroData} from "./model/chip";
-import {GrovetenderFaction} from "./grovetender";
+import {GrovetendersFactionData} from "./grovetender";
+import {FactionData} from "./model/faction";
 
 export class Data {
-  static Brawnen: BrawnenFaction = new BrawnenFaction();
-  static Grovetender: GrovetenderFaction = new GrovetenderFaction();
+  static Brawnen: BrawnenFactionData = new BrawnenFactionData();
+  static Grovetenders: GrovetendersFactionData = new GrovetendersFactionData();
 
+  static Factions: FactionData[] = [
+    this.Brawnen,
+    this.Grovetenders
+  ];
   static Heroes: HeroData[] = [
     ...this.Brawnen.heroes,
-    ...this.Grovetender.heroes
+    ...this.Grovetenders.heroes
     //TODO: market
   ];
   static Minions = [
     ...this.Brawnen.minions,
-    ...this.Grovetender.minions,
+    ...this.Grovetenders.minions,
   ];
   static Spires = [
     ...this.Brawnen.spires,
-    ...this.Grovetender.spires
+    ...this.Grovetenders.spires
     //TODO: market
   ];
   static Landmarks= LandmarksData.Chips;

@@ -1,14 +1,14 @@
 import {Hex} from "honeycomb-grid";
 import {GameElement} from "./game";
-import {Factions} from "../../../data/enums";
+import {FactionType} from "../../../data/enums";
 
 export class Fortress extends GameElement {
   gateHex: Hex;
-  faction: Factions;
+  faction: FactionType;
   rotation: number;
   health = 10;
 
-  constructor(hex: Hex, faction: Factions, rotation: number) {
+  constructor(hex: Hex, faction: FactionType, rotation: number) {
     super();
     this.gateHex = hex;
     this.faction = faction;
@@ -16,7 +16,7 @@ export class Fortress extends GameElement {
   }
 
   getFactionName() {
-    return Factions[this.faction];
+    return FactionType[this.faction];
   }
 
   override getFileName() {

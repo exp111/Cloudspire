@@ -1,18 +1,20 @@
 import {FactionData} from "./model/faction";
 import {HeroData, SpireData} from "./model/chip";
-import {Factions, Terrain} from "./enums";
+import {FactionType, Terrain} from "./enums";
 
-class GrovetenderHero extends HeroData {
-  override faction = Factions.GROVETENDERS;
+class GrovetendersHeroData extends HeroData {
+  override faction = FactionType.GROVETENDERS;
 }
 
-class GrovetenderSpire extends SpireData {
-  override faction = Factions.GROVETENDERS;
+class GrovetendersSpireData extends SpireData {
+  override faction = FactionType.GROVETENDERS;
 }
 
-export class GrovetenderFaction implements FactionData {
+export class GrovetendersFactionData implements FactionData {
+  type = FactionType.GROVETENDERS;
+
   heroes = [
-    new GrovetenderHero({
+    new GrovetendersHeroData({
       name: "Dywen",
       cost: 0,
       reward: 2,
@@ -28,7 +30,7 @@ export class GrovetenderFaction implements FactionData {
 
   ];
   spires = [
-    new GrovetenderSpire({
+    new GrovetendersSpireData({
       name: "Shrubbery",
       cost: 4,
       reward: 1,
@@ -36,7 +38,7 @@ export class GrovetenderFaction implements FactionData {
       fortification: 1,
       capacity: 2
     }),
-    new GrovetenderSpire({
+    new GrovetendersSpireData({
       name: "Reetall",
       cost: 5,
       reward: 2,
