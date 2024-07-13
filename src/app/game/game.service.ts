@@ -230,7 +230,7 @@ export class GameService {
     return faction;
   }
 
-  createFortress(faction: Faction, col: number, row: number, rotation: number) {
+  createFortress(faction: Faction, col: number, row: number, rotation: number, health?: number) {
     let coords = {col: col, row: row};
     let hex = this.grid.getHex(coords)!;
     // add hexes to list
@@ -245,7 +245,8 @@ export class GameService {
       this.rotatedMove(Direction.E, rotation),
       this.rotatedMove(Direction.SE, rotation),
     ];
-    let fortress = new Fortress(hex, faction.type, rotation);
+    let fortress = new Fortress(hex, faction.type, rotation, health);
+    faction.fortress = fortress;
     this.elements.fortress.push(fortress);
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
