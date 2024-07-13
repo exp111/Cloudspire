@@ -7,6 +7,7 @@ import {Earthscape, GameHex, Isle} from "./logic/hex";
 import {Landmark} from "./logic/chips/landmark";
 import {Spire} from "./logic/chips/spire";
 import {Hero} from "./logic/chips/hero";
+import {Factions} from "../../data/enums";
 
 declare global {
   interface Window {
@@ -157,6 +158,8 @@ export class GameService {
   createScenario1() {
     this.createFortress("grovetenders", 2, 2, 1);
     this.createFortress("brawnen", 4, 10, -1);
+    this.createFortress(Factions.GROVETENDERS, 2, 2, 1);
+    this.createFortress(Factions.BRAWNEN, 4, 10, -1);
 
     this.createIsle(8, 4, 2, 3);
     this.createIsle(4, 6, 5, 0);
@@ -207,7 +210,7 @@ export class GameService {
   }
 
   // create helpers
-  createFortress(faction: string, col: number, row: number, rotation: number) {
+  createFortress(faction: Factions, col: number, row: number, rotation: number) {
     let coords = {col: col, row: row};
     let hex = this.grid.getHex(coords)!;
     // add hexes to list
