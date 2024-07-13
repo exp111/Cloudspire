@@ -7,13 +7,15 @@ export class Fortress extends GameElement {
   faction: FactionType;
   rotation: number;
   health: number;
+  source: number;
 
-  constructor(hex: Hex, faction: FactionType, rotation: number, health: number = 10) {
+  constructor(hex: Hex, faction: FactionType, rotation: number, health: number = 10, source: number = 0) {
     super();
     this.gateHex = hex;
     this.faction = faction;
     this.rotation = rotation;
     this.health = health;
+    this.source = source;
   }
 
   getFactionName() {

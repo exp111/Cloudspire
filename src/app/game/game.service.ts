@@ -169,8 +169,8 @@ export class GameService {
     const brawnen = this.createFaction(FactionType.BRAWNEN, true);
     const grovetenders = this.createFaction(FactionType.GROVETENDERS, false);
 
-    this.createFortress(grovetenders, 2, 2, 1);
-    this.createFortress(brawnen, 4, 10, -1);
+    this.createFortress(grovetenders, 2, 2, 1, 10);
+    this.createFortress(brawnen, 4, 10, -1, 10, 0);
 
     this.createIsle(8, 4, 2, 3);
     this.createIsle(4, 6, 5, 0);
@@ -230,7 +230,7 @@ export class GameService {
     return faction;
   }
 
-  createFortress(faction: Faction, col: number, row: number, rotation: number, health?: number) {
+  createFortress(faction: Faction, col: number, row: number, rotation: number, health?: number, source?: number) {
     let coords = {col: col, row: row};
     let hex = this.grid.getHex(coords)!;
     // add hexes to list
@@ -245,7 +245,7 @@ export class GameService {
       this.rotatedMove(Direction.E, rotation),
       this.rotatedMove(Direction.SE, rotation),
     ];
-    let fortress = new Fortress(hex, faction.type, rotation, health);
+    let fortress = new Fortress(hex, faction.type, rotation, health, source);
     faction.fortress = fortress;
     this.elements.fortress.push(fortress);
     this.grid.traverse(traverser).forEach((h) => {
