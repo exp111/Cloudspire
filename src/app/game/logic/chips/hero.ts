@@ -2,6 +2,7 @@ import {HeroData} from "../../../../data/model/chip";
 import {GameHex} from "../hex";
 import {Data} from "../../../../data/data";
 import {Chip, ChipType, ContainerChip, HealthChip} from "./chip";
+import {FactionType} from "../../../../data/enums";
 
 export class Hero extends ContainerChip {
   override type = ChipType.HERO;
@@ -12,8 +13,8 @@ export class Hero extends ContainerChip {
   range!: number;
   promoted: boolean = false;
 
-  constructor(hex: GameHex, name: string, chips?: Chip[]) {
-    super(hex, name, chips);
+  constructor(hex: GameHex, name: string, faction?: FactionType, chips?: Chip[]) {
+    super(hex, name, faction, chips);
     // get data from db //TODO: move this into overwriteable method?
     this.data = Data.Heroes.find(h => h.name === name)!;
     this.calculateStats();

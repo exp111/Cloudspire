@@ -1,9 +1,8 @@
 import {ChipData} from "../../../../data/model/chip";
 import {Data} from "../../../../data/data";
-import {GameHex, HexGroup} from "../hex";
-import {Terrain} from "../../../../data/enums";
+import {GameHex} from "../hex";
+import {FactionType, Terrain} from "../../../../data/enums";
 import {GameElement} from "../game";
-import {Hex} from "honeycomb-grid";
 
 export enum ChipType {
   HERO,
@@ -20,10 +19,12 @@ export abstract class Chip extends GameElement {
   abstract type: ChipType;
   hex: GameHex | undefined;
   data: ChipData | undefined;
+  faction: FactionType;
 
-  protected constructor(hex?: GameHex, name?: string) {
+  protected constructor(hex?: GameHex, name?: string, faction?: FactionType) {
     super();
     this.hex = hex;
+    this.faction = faction ?? FactionType.NEUTRAL; //TODO: default to neutral?
     // get data from db
     if (name) {
       this.data = Data.Chips.find(h => h.name === name)!;
@@ -47,8 +48,8 @@ export abstract class ContainerChip extends Chip {
   // list of chips from top to bottom
   chips: Chip[];
 
-  protected constructor(hex?: GameHex, name?: string, chips?: Chip[]) {
-    super(hex, name);
+  protected constructor(hex?: GameHex, name?: string, faction?: FactionType, chips?: Chip[]) {
+    super(hex, name, faction);
     this.chips = [];
     if (chips) {
       this.chips = [...chips];

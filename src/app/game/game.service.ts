@@ -119,14 +119,19 @@ export class GameService {
   onChipClicked(chip: Chip) {
     // select chip
     let selected = this.selectedChip;
-    // unselect previous chip if one was selected
-    if (selected != null) {
-      this.deselectChip();
-    }
-    // if we clicked a new chip, select it
-    if (selected != chip) {
-      // only select if we werent selected
-      this.selectChip(chip);
+    // only let
+    if (chip.faction == this.playerFaction!.type) {
+      // unselect previous chip if one was selected
+      if (selected != null) {
+        this.deselectChip();
+      }
+      // if we clicked a new chip, select it
+      if (selected != chip) {
+        // only select if we werent selected
+        this.selectChip(chip);
+      }
+    } else {
+      // attack enemy or smth idk
     }
   }
 
@@ -160,11 +165,11 @@ export class GameService {
   // Scenario
   createScenario1() {
     //TODO: round order
-    this.createFaction(FactionType.BRAWNEN, true);
-    this.createFaction(FactionType.GROVETENDERS, false);
+    const brawnen = this.createFaction(FactionType.BRAWNEN, true);
+    const grovetenders = this.createFaction(FactionType.GROVETENDERS, false);
 
-    this.createFortress(FactionType.GROVETENDERS, 2, 2, 1);
-    this.createFortress(FactionType.BRAWNEN, 4, 10, -1);
+    this.createFortress(grovetenders, 2, 2, 1);
+    this.createFortress(brawnen, 4, 10, -1);
 
     this.createIsle(8, 4, 2, 3);
     this.createIsle(4, 6, 5, 0);
@@ -175,11 +180,11 @@ export class GameService {
     this.createEarthscape(16, 3, 10, true, 1);
     this.createEarthscape(15, 4, 9, true, 2);
 
-    this.createHero("Awsh", 1, 7, [new HealthChip(), new HealthChip(), new HealthChip()]);
-    this.createLandmark("Thoraxx", 3, 6, [new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip()]);
-    this.createSpire("Reetall", 6, 1, [new AttackUpgrade(), new RangeUpgrade(), new RangeUpgrade()]);
-    this.createSpire("Shrubbery", 7, 5, [new FortificationUpgrade(), new FortificationUpgrade()]);
-    this.createSpire("Shrubbery", 6, 6, [new FortificationUpgrade(), new FortificationUpgrade()]);
+    this.createHero(brawnen, "Awsh", 1, 7, [new HealthChip(), new HealthChip(), new HealthChip()]);
+    this.createLandmark(null, "Thoraxx", 3, 6, [new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip()]);
+    this.createSpire(grovetenders, "Reetall", 6, 1, [new AttackUpgrade(), new RangeUpgrade(), new RangeUpgrade()]);
+    this.createSpire(grovetenders, "Shrubbery", 7, 5, [new FortificationUpgrade(), new FortificationUpgrade()]);
+    this.createSpire(grovetenders, "Shrubbery", 6, 6, [new FortificationUpgrade(), new FortificationUpgrade()]);
   }
 
   // Helpers
@@ -224,7 +229,7 @@ export class GameService {
     return faction;
   }
 
-  createFortress(faction: FactionType, col: number, row: number, rotation: number) {
+  createFortress(faction: Faction, col: number, row: number, rotation: number) {
     let coords = {col: col, row: row};
     let hex = this.grid.getHex(coords)!;
     // add hexes to list
@@ -239,7 +244,7 @@ export class GameService {
       this.rotatedMove(Direction.E, rotation),
       this.rotatedMove(Direction.SE, rotation),
     ];
-    let fortress = new Fortress(hex, faction, rotation);
+    let fortress = new Fortress(hex, faction.type, rotation);
     this.elements.fortress.push(fortress);
     this.grid.traverse(traverser).forEach((h) => {
       let key = this.getKeyFromHex(h);
@@ -311,28 +316,28 @@ export class GameService {
     return scape;
   }
 
-  createHero(name: string, col: number, row: number, chips?: Chip[]) {
+  createHero(faction: Faction, name: string, col: number, row: number, chips?: Chip[]) {
     let hex = this.hexes[this.getKeyFromPos(col, row)]!;
     // add chip to list
-    let chip = new Hero(hex, name, chips);
+    let chip = new Hero(hex, name, faction.type, chips);
     this.chips[this.getKeyFromPos(col, row)] = chip;
     this.elements.chips.push(chip);
     return chip;
   }
 
-  createLandmark(name: string, col: number, row: number, chips?: Chip[]) {
+  createLandmark(faction: Faction | null, name: string, col: number, row: number, chips?: Chip[]) {
     let hex = this.hexes[this.getKeyFromPos(col, row)]!;
     // add chip to list
-    let chip = new Landmark(hex, name, chips);
+    let chip = new Landmark(hex, name, faction ? faction.type : FactionType.NEUTRAL, chips);
     this.chips[this.getKeyFromPos(col, row)] = chip;
     this.elements.chips.push(chip);
     return chip;
   }
 
-  createSpire(name: string, col: number, row: number, upgrades?: Chip[]) {
+  createSpire(faction: Faction, name: string, col: number, row: number, upgrades?: Chip[]) {
     let hex = this.hexes[this.getKeyFromPos(col, row)]!;
     // add chip to list
-    let chip = new Spire(hex, name, upgrades);
+    let chip = new Spire(hex, name, faction.type, upgrades);
     this.chips[this.getKeyFromPos(col, row)] = chip;
     this.elements.chips.push(chip);
     return chip;

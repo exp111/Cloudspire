@@ -2,6 +2,7 @@ import {SpireData} from "../../../../data/model/chip";
 import {GameHex} from "../hex";
 import {Data} from "../../../../data/data";
 import {AttackUpgrade, Chip, ChipType, ContainerChip, FortificationUpgrade, RangeUpgrade, UpgradeChip} from "./chip";
+import {FactionType} from "../../../../data/enums";
 
 export class Spire extends ContainerChip {
   override type = ChipType.SPIRE;
@@ -10,8 +11,8 @@ export class Spire extends ContainerChip {
   fortification!: number;
   range!: number;
 
-  constructor(hex: GameHex, name: string, upgrades?: Chip[]) {
-    super(hex, name, upgrades);
+  constructor(hex: GameHex, name: string, faction?: FactionType, upgrades?: Chip[]) {
+    super(hex, name, faction, upgrades);
     // get data from db
     this.data = Data.Spires.find(h => h.name === name)!;
     this.calculateStats();

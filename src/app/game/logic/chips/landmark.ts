@@ -2,6 +2,7 @@ import {LandmarkData} from "../../../../data/model/chip";
 import {GameHex} from "../hex";
 import {Data} from "../../../../data/data";
 import {AttackUpgrade, Chip, ChipType, ContainerChip} from "./chip";
+import {FactionType} from "../../../../data/enums";
 
 export class Landmark extends ContainerChip {
   override type = ChipType.LANDMARK;
@@ -9,8 +10,8 @@ export class Landmark extends ContainerChip {
   health!: number;
   attack!: number;
 
-  constructor(hex: GameHex, name: string, chips?: Chip[]) {
-    super(hex, name, chips);
+  constructor(hex: GameHex, name: string, faction: FactionType = FactionType.NEUTRAL, chips?: Chip[]) {
+    super(hex, name, faction, chips);
     // get data from db
     this.data = Data.Landmarks.find(h => h.name === name)!;
     this.calculateStats();
