@@ -32,7 +32,7 @@ export class GameService {
   isles: Dict<Isle | null> = {};
   earthscapes: Dict<Earthscape | null> = {};
   fortress: Dict<Fortress | null> = {};
-  factions: Faction[] = [];
+  factions: Dict<Faction | null> = {};
   playerFaction: Faction | null = null;
   elements: { fortress: Fortress[], chips: Chip[], isles: Isle[], earthscapes: Earthscape[] } = {
     fortress: [],
@@ -116,6 +116,7 @@ export class GameService {
   }
 
   //TODO: we cant move this into the model class, so maybe into a chipService/Controller?
+  //      or move logic into higher chip class that doesnt get imported here (but how do we then create it?)
   onChipClicked(chip: Chip) {
     // select chip
     let selected = this.selectedChip;
@@ -131,7 +132,7 @@ export class GameService {
         this.selectChip(chip);
       }
     } else {
-      // attack enemy or smth idk
+      //TODO: attack enemy or smth idk
     }
   }
 
@@ -222,7 +223,7 @@ export class GameService {
   // create helpers
   createFaction(type: FactionType, isPlayer: boolean) {
     const faction = new Faction(type, isPlayer);
-    this.factions.push(faction);
+    this.factions[type] = faction;
     if (isPlayer) {
       this.playerFaction = faction;
     }
