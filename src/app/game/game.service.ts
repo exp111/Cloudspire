@@ -9,6 +9,9 @@ import {Spire} from "./logic/chips/spire";
 import {Hero} from "./logic/chips/hero";
 import {FactionType} from "../../data/enums";
 import {Faction} from "./logic/faction";
+import "../utils/grid.extensions";
+import "../utils/hex.extensions";
+import {HexUtils} from "../utils/hexUtils";
 
 declare global {
   interface Window {
@@ -59,14 +62,14 @@ export class GameService {
 
   // Events
   onHexClicked(hex: Hex) {
-    let key = this.getKeyFromHex(hex);
+    let key = hex.getKey();
     let gameHex = this.hexes[key];
     // dont do anything if its outside of the map
     if (!gameHex) {
       return;
     }
 
-    let chip = this.chips[this.getKeyFromHex(hex)];
+    let chip = this.chips[key];
     if (chip) {
       // forward to chip
       this.onChipClicked(chip);
@@ -92,7 +95,7 @@ export class GameService {
       return;
     }
 
-    let key = this.getKeyFromHex(hex);
+    let key = hex.getKey();
     let gameHex = this.hexes[key];
     // not inside the map
     if (!gameHex) {
@@ -139,8 +142,8 @@ export class GameService {
   // Functions
   moveChip(chip: Chip, hex: GameHex) {
     //TODO: displace?
-    this.chips[this.getKeyFromHex(chip.hex!.hex)] = null;
-    this.chips[this.getKeyFromHex(hex.hex)] = chip;
+    this.chips[chip.hex!.hex.getKey()] = null;
+    this.chips[hex.hex.getKey()] = chip;
     chip.hex = hex;
     this.onChipMoved(chip, hex);
   }
@@ -189,14 +192,6 @@ export class GameService {
   }
 
   // Helpers
-  getKeyFromHex(hex: Hex) {
-    return this.getKeyFromPos(hex.col, hex.row);
-  }
-
-  private getKeyFromPos(col: number, row: number) {
-    return `${col},${row}`;
-  }
-
   DirectionFromAngle(angle: number) {
     let arr: { [k: number]: Direction } = {
       30: Direction.NE,
@@ -249,8 +244,7 @@ export class GameService {
     faction.fortress = fortress;
     this.elements.fortress.push(fortress);
     this.grid.traverse(traverser).forEach((h) => {
-      let key = this.getKeyFromHex(h);
-      this.fortress[key] = fortress;
+      this.fortress[h.getKey()] = fortress;
     });
     return fortress;
   }
@@ -278,7 +272,7 @@ export class GameService {
     this.elements.isles.push(isle);
     let i = 0;
     this.grid.traverse(traverser).forEach((h) => {
-      let key = this.getKeyFromHex(h);
+      let key = h.getKey();
       let terrain = isle.data.terrain[i];
       let hasSource = isle.data.source[i];
       let hex = new GameHex(h, isle, terrain, hasSource ?? false);
@@ -304,7 +298,7 @@ export class GameService {
     this.elements.earthscapes.push(scape);
     let i = 0;
     this.grid.traverse(traverser).forEach((h) => {
-      let key = this.getKeyFromHex(h);
+      let key = h.getKey();
       // offset the terrain index by the rotation
       let index = (i + (rotation * 2)) % scape.data.terrain.length;
       let terrain = scape.data.terrain[index];
@@ -319,28 +313,31 @@ export class GameService {
   }
 
   createHero(faction: Faction, name: string, col: number, row: number, chips?: Chip[]) {
-    let hex = this.hexes[this.getKeyFromPos(col, row)]!;
+    const key = HexUtils.getKeyFromPos(col, row);
+    const hex = this.hexes[key]!;
     // add chip to list
-    let chip = new Hero(hex, name, faction.type, chips);
-    this.chips[this.getKeyFromPos(col, row)] = chip;
+    const chip = new Hero(hex, name, faction.type, chips);
+    this.chips[key] = chip;
     this.elements.chips.push(chip);
     return chip;
   }
 
   createLandmark(faction: Faction | null, name: string, col: number, row: number, chips?: Chip[]) {
-    let hex = this.hexes[this.getKeyFromPos(col, row)]!;
+    const key = HexUtils.getKeyFromPos(col, row);
+    const hex = this.hexes[key]!;
     // add chip to list
-    let chip = new Landmark(hex, name, faction ? faction.type : FactionType.NEUTRAL, chips);
-    this.chips[this.getKeyFromPos(col, row)] = chip;
+    const chip = new Landmark(hex, name, faction ? faction.type : FactionType.NEUTRAL, chips);
+    this.chips[key] = chip;
     this.elements.chips.push(chip);
     return chip;
   }
 
   createSpire(faction: Faction, name: string, col: number, row: number, upgrades?: Chip[]) {
-    let hex = this.hexes[this.getKeyFromPos(col, row)]!;
+    const key = HexUtils.getKeyFromPos(col, row);
+    const hex = this.hexes[key]!;
     // add chip to list
-    let chip = new Spire(hex, name, faction.type, upgrades);
-    this.chips[this.getKeyFromPos(col, row)] = chip;
+    const chip = new Spire(hex, name, faction.type, upgrades);
+    this.chips[key] = chip;
     this.elements.chips.push(chip);
     return chip;
   }

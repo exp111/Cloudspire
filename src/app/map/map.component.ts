@@ -173,7 +173,7 @@ export class MapComponent implements OnInit {
     // Hex overlay
     this.hexOverlay.zIndex = ZOrder.HexOverlay;
     this.game.grid.forEach((hex) => {
-      let key = this.game.getKeyFromHex(hex);
+      let key = hex.getKey();
       if (!this.renderNonMapHexes && !this.game.hexes[key]) {
         return;
       }
@@ -346,6 +346,7 @@ export class MapComponent implements OnInit {
 
   private async createFortress(fortress: Fortress) {
     let hex = fortress.gateHex;
+    //TODO: container
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/${fortress.getFileName()}`);
     sprite.eventMode = "static";
     sprite.zIndex = ZOrder.Fortress; // lowest z
@@ -356,6 +357,7 @@ export class MapComponent implements OnInit {
     this.viewport.addChild(sprite);
     // add to list
     this.sprites[fortress.uid] = sprite;
+    //TODO: show health + source
     return sprite;
   }
 
