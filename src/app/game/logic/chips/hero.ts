@@ -38,8 +38,7 @@ export class Hero extends ContainerChip {
   }
 
   override getFileName() {
-    //TODO: backside?
-    return `chip/${Hero.sanitizeName(this.data.name)}_front.png`;
+    return `chip/${Hero.sanitizeName(this.data.name)}${!this.promoted ? "_front" : "_back"}.png`;
   }
 
   override canMoveToHex(hex: GameHex): boolean {
