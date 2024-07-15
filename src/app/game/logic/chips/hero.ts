@@ -3,6 +3,8 @@ import {GameHex} from "../hex";
 import {Data} from "../../../../data/data";
 import {Chip, ChipType, ContainerChip, HealthChip} from "./chip";
 import {FactionType} from "../../../../data/enums";
+import {Grid, Hex} from "honeycomb-grid";
+import {Dict} from "pixi.js";
 
 export class Hero extends ContainerChip {
   override type = ChipType.HERO;
@@ -43,5 +45,9 @@ export class Hero extends ContainerChip {
   override canMoveToHex(hex: GameHex): boolean {
     let allowance = this.promoted ? this.data.promotedAllowance : this.data.allowance;
     return allowance >= hex.terrain;
+  }
+
+  override getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | undefined>): Hex[] {
+    return this.getReachableHexes(grid, hexes, this.data.movement);
   }
 }

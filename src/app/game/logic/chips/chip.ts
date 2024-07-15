@@ -3,6 +3,8 @@ import {Data} from "../../../../data/data";
 import {GameHex} from "../hex";
 import {FactionType, Terrain} from "../../../../data/enums";
 import {GameElement} from "../game";
+import {Grid, Hex, spiral} from "honeycomb-grid";
+import {Dict} from "pixi.js";
 
 export enum ChipType {
   HERO,
@@ -39,8 +41,35 @@ export abstract class Chip extends GameElement {
     return `chip/${Chip.sanitizeName(this.data!.name)}.png`;
   }
 
-  //TODO: automated pathfinding calc is a bit fucky as the neighbours function doesnt exist and spiral/ring traverse is fucked
-  // also we'd need to give like 3 parameters from game service to here as to get any possibility to calculate shit
+  getReachableHexes(grid: Grid<Hex>, hexes: Dict<GameHex | undefined>, radius: number) {
+    const traverser = spiral(
+      {
+        start: this.hex!.hex.coords(),
+        radius: radius
+      });
+    let result: Hex[] = [];
+    for (let h of grid.traverse(traverser)) {
+      // dont check the same hex
+      if (h == this.hex!.hex) {
+        continue;
+      }
+      let gameHex = hexes[h.getKey()];
+      // hex is outside of map
+      if (!gameHex) {
+        continue;
+      }
+      // can not move to hex
+      if (!this.canMoveToHex(gameHex)) {
+        continue;
+      }
+      result.push(h);
+    }
+    return result;
+  }
+
+  getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | undefined>) : Hex[] {
+    return [];
+  }
 }
 
 type Class<T> = new (...args: any[]) => T;
