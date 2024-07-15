@@ -60,3 +60,12 @@ export class HeroData extends ChipData {
     this.promotedAllowance = this.promotedAllowance ?? this.allowance;
   }
 }
+
+export class MinionData extends ChipData {
+  health!: number;
+
+  constructor(data: Partial<MinionData>) {
+    super(data);
+    this.health = this.health ?? 0;
+  }
+}

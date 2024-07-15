@@ -3,7 +3,7 @@ import {BrawnenFactionData} from "./brawnen";
 import {IslesData} from "./isles";
 import {EarthscapesData} from "./earthscapes";
 import {LandmarksData} from "./landmark";
-import {ChipData, HeroData} from "./model/chip";
+import {ChipData, HeroData, MinionData} from "./model/chip";
 import {GrovetendersFactionData} from "./grovetender";
 import {FactionData} from "./model/faction";
 
@@ -20,7 +20,7 @@ export class Data {
     ...this.Grovetenders.heroes
     //TODO: market
   ];
-  static Minions = [
+  static Minions: MinionData[] = [
     ...this.Brawnen.minions,
     ...this.Grovetenders.minions,
   ];
