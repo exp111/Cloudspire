@@ -34,6 +34,7 @@ enum Colors {
   Yellow = 0xFFFF00,
 
   Highlight = Red,
+  NoTint = White,
 
   Health = 0xE71C41,
   Attack = 0xF05423,
@@ -186,7 +187,7 @@ export class MapComponent implements OnInit {
       if (this.showCoordLabels) {
         this.debugLabel(`${hex.col},${hex.row}`,
           this.game.hexes[key] ? Colors.Red : Colors.Green,
-          {x: hex.x, y: hex.y},
+          hex.pos(),
           ZOrder.CoordinateOverlay);
       }
     });
@@ -207,10 +208,11 @@ export class MapComponent implements OnInit {
     let sprite = this.getChipSprite(chip);
     sprite.tint = Colors.White;
     this.fakeChip.visible = false;
+    sprite.tint = Colors.NoTint;
   }
 
   private moveChip(chip: Chip, hex: GameHex) {
-    this.getElementContainer(chip).position = {x: hex.hex.x, y: hex.hex.y};
+    this.getElementContainer(chip).position = hex.hex.pos();
   }
 
   private hidePreview() {
@@ -276,7 +278,7 @@ export class MapComponent implements OnInit {
     sprite.zIndex = ZOrder.Tile; // lowest z
     sprite.angle = 60 * isle.rotation;
     sprite.anchor.set(0.5); // center
-    sprite.position = {x: hex.x, y: hex.y};
+    sprite.position = hex.pos();
     // add to stage
     this.viewport.addChild(sprite);
     // add to list
@@ -302,7 +304,7 @@ export class MapComponent implements OnInit {
   private async createChip(chip: Chip): Promise<PIXI.Container> {
     let container = new PIXI.Container();
     container.zIndex = ZOrder.Chip;
-    container.position = {x: chip.hex!.hex.x, y: chip.hex!.hex.y};
+    container.position = chip.hex!.hex.pos();
     let sprite = await this.loadSpriteFromUrl(`${this.RESOURCE_BASE_PATH}/${chip.getFileName()}`);
     // make chip diameter as wide as the hex lines, plus a bit of extra (*1.5)
     sprite.label = "sprite";
@@ -352,7 +354,7 @@ export class MapComponent implements OnInit {
     sprite.zIndex = ZOrder.Fortress; // lowest z
     sprite.angle = 30 + 60 * fortress.rotation;
     sprite.anchor.set(0.5, 0.155); // set center on the gate
-    sprite.position = {x: hex.x, y: hex.y};
+    sprite.position = hex.pos();
     // add to stage
     this.viewport.addChild(sprite);
     // add to list

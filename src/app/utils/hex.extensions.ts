@@ -1,11 +1,13 @@
 import {Hex, HexCoordinates} from "honeycomb-grid";
 import {HexUtils} from "./hexUtils";
+import {PointData} from "pixi.js";
 
 export {}
 
 declare module "honeycomb-grid" {
   interface Hex {
     coords(): HexCoordinates;
+    pos(): PointData;
     getKey(): string;
   }
 }
@@ -13,6 +15,9 @@ declare module "honeycomb-grid" {
 Hex.prototype.coords = function() {
   return {col: this.col, row: this.row};
 };
+Hex.prototype.pos = function() {
+  return {x: this.x, y: this.y};
+}
 Hex.prototype.getKey = function() {
   return HexUtils.getKeyFromPos(this.col, this.row);
 }
