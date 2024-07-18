@@ -1,7 +1,7 @@
 import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {NgOptimizedImage} from "@angular/common";
 import * as PIXI from "pixi.js";
-import {ColorSource, PointData, Sprite} from "pixi.js";
+import {ColorSource, PointData, Sprite, Texture} from "pixi.js";
 import {Viewport} from "pixi-viewport";
 import {Chip, ChipType} from "../game/logic/chips/chip";
 import {Earthscape, GameHex, Isle} from "../game/logic/hex";
@@ -34,6 +34,7 @@ enum Colors {
   Yellow = 0xFFFF00,
 
   Highlight = Red,
+  HoverHighlight = Yellow,
   NoTint = White,
 
   Health = 0xE71C41,
@@ -80,7 +81,7 @@ export class MapComponent implements OnInit {
   hexOverlay = new PIXI.Graphics();
 
   sprites: PIXI.Container[] = [];
-  fakeChip!: Sprite;
+  fakeChips: PIXI.Sprite[] = [];
 
   async ngOnInit() {
     // init app
@@ -105,19 +106,11 @@ export class MapComponent implements OnInit {
       .pinch()
       .wheel();
 
-    // Hover chip
     //TODO: ideas:
     // - like this, global mouse listener
     // - global ticker that checks mouse pos
     // - make single hex entities and listen on them
-    this.fakeChip = new Sprite({
-      scale: (this.game.HEX_SIZE * this.SPRITE_CHIP_MULT) / this.SPRITE_CHIP_WIDTH,
-      zIndex: ZOrder.HoverOverlay,
-      anchor: 0.5,
-      visible: false,
-      alpha: 0.5
-    });
-    this.viewport.addChild(this.fakeChip);
+
     // Listen to events
     /// UI
     this.viewport.onpointertap = (e) => {
@@ -201,36 +194,55 @@ export class MapComponent implements OnInit {
   private selectChip(chip: Chip) {
     let sprite = this.getChipSprite(chip);
     sprite.tint = Colors.Highlight;
-    this.fakeChip.texture = sprite.texture;
+    // get possible move hexes
+    let hexes = this.game.getMovementHexes(chip);
+    // highlight each hex
+    for (let hex of hexes) {
+      let fake = this.createFakeChip(sprite.texture);
+      fake.position = hex.hex.pos();
+      this.fakeChips.push(fake);
+    }
   }
 
   private deselectChip(chip: Chip) {
     let sprite = this.getChipSprite(chip);
-    sprite.tint = Colors.White;
-    this.fakeChip.visible = false;
     sprite.tint = Colors.NoTint;
+    // remove highlights
+    this.viewport.removeChild(...this.fakeChips);
+    this.fakeChips = [];
   }
 
   private moveChip(chip: Chip, hex: GameHex) {
     this.getElementContainer(chip).position = hex.hex.pos();
   }
 
+  //TODO: disable previews as they arent that useful/good?
   private hidePreview() {
-    this.fakeChip.visible = false;
+    for (let fake of this.fakeChips) {
+      fake.tint = Colors.NoTint;
+    }
   }
 
   private showPreview(hex: GameHex) {
-    this.fakeChip.visible = true;
-    this.fakeChip.position = {x: hex.hex.x, y: hex.hex.y};
+    let pos = hex.hex.pos();
+    for (let fake of this.fakeChips) {
+      if (fake.position.equals(pos)) {
+        fake.tint = Colors.Yellow;
+      } else {
+        fake.tint = Colors.NoTint;
+      }
+    }
   }
 
   // Helpers
   private getElementContainer(el: GameElement) {
     return this.sprites[el.uid];
   }
+
   private getChipSprite(chip: Chip) {
     return this.getElementContainer(chip).getChildByName("sprite")! as PIXI.Sprite;
   }
+
   private async loadSpriteFromUrl(url: string) {
     let texture = await PIXI.Assets.load(url);
     return PIXI.Sprite.from(texture);
@@ -252,6 +264,19 @@ export class MapComponent implements OnInit {
 
   debugLabel(text: string, color: ColorSource, pos: PointData, zIndex: ZOrder = ZOrder.Debug) {
     this.viewport.addChild(this.label(text, color, null, pos, zIndex));
+  }
+
+  createFakeChip(texture: Texture) {
+    let fake = new Sprite({
+      texture: texture,
+      scale: (this.game.HEX_SIZE * this.SPRITE_CHIP_MULT) / this.SPRITE_CHIP_WIDTH,
+      zIndex: ZOrder.HoverOverlay,
+      anchor: 0.5,
+      visible: true,
+      alpha: 0.5
+    });
+    this.viewport.addChild(fake);
+    return fake;
   }
 
   chipOverlay(chip: Chip, text: PIXI.TextString, color: Colors, type: string, cornerIndex: number) {
