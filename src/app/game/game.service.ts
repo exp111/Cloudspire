@@ -166,6 +166,10 @@ export class GameService {
     this.onChipSelected(chip);
   }
 
+  getMovementHexes(chip: Chip) {
+    return chip.getPossibleMovementHexes(this.grid, this.hexes);
+  }
+
   // Scenario
   createScenario1() {
     //TODO: round order

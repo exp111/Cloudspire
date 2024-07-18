@@ -46,7 +46,7 @@ export class Hero extends ContainerChip {
     return allowance >= hex.terrain;
   }
 
-  override getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | undefined>): Hex[] {
+  override getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>) {
     return this.getReachableHexes(grid, hexes, this.data.movement);
   }
 }

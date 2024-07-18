@@ -41,13 +41,14 @@ export abstract class Chip extends GameElement {
     return `chip/${Chip.sanitizeName(this.data!.name)}.png`;
   }
 
-  getReachableHexes(grid: Grid<Hex>, hexes: Dict<GameHex | undefined>, radius: number) {
+  // Returns the hexes in radius `radius` this chip can move to
+  getReachableHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>, radius: number) {
     const traverser = spiral(
       {
         start: this.hex!.hex.coords(),
         radius: radius
       });
-    let result: Hex[] = [];
+    let result: GameHex[] = [];
     for (let h of grid.traverse(traverser)) {
       // dont check the same hex
       if (h == this.hex!.hex) {
@@ -62,12 +63,13 @@ export abstract class Chip extends GameElement {
       if (!this.canMoveToHex(gameHex)) {
         continue;
       }
-      result.push(h);
+      result.push(gameHex);
     }
     return result;
   }
 
-  getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | undefined>) : Hex[] {
+  // Returns a list of hexes where this chip can move to
+  getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>) : GameHex[] {
     return [];
   }
 }
@@ -87,16 +89,19 @@ export abstract class ContainerChip extends Chip {
     }
   }
 
+  // Adds an amount of chips of class `c` under tis chip
   addChips(c: Class<UpgradeChip>, num: number) {
     for (let i = 0; i < num; i++) {
       this.chips.push(new c());
     }
   }
 
+  // Returns the amount of chips of type `type` under this chip
   countOfChip(type: ChipType) {
     return this.chips.filter(c => c.type == type).length;
   }
 
+  // Creates the default chips under this tile
   abstract createDefaultChips(): void;
 }
 
