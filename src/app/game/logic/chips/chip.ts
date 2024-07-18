@@ -41,37 +41,56 @@ export abstract class Chip extends GameElement {
     return `chip/${Chip.sanitizeName(this.data!.name)}.png`;
   }
 
-  //TODO: we need to check if we can pathfind to those, not check for a simple radius
   // Returns the hexes in radius `radius` this chip can move to
-  getReachableHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>, chips: Dict<Chip | null>, radius: number) {
-    const traverser = spiral(
-      {
-        start: this.hex!.hex.coords(),
-        radius: radius
-      });
-    let result: GameHex[] = [];
-    for (let h of grid.traverse(traverser)) {
-      // dont check the same hex
-      if (h == this.hex!.hex) {
+  getReachableHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>, chips: Dict<Chip | null>, maxDistance: number) {
+    const reachable = [];
+    // contains the hexes we need to check
+    //TODO: priority queue? removes duplicate finds
+    const queue = [this.hex];
+    // contains which hexes we have and their fastest path
+    const cost: Dict<number> = {};
+    cost[this.hex!.hex.getKey()] = 0;
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      const currentKey = current.hex.getKey();
+      const currentCost = cost[currentKey];
+      // its reachable
+      reachable.push(current);
+      // if we're at the edge, dont move any further
+      const nextCost = currentCost + 1;
+      if (nextCost > maxDistance) {
         continue;
       }
-      const key = h.getKey();
-      let gameHex = hexes[key];
-      // hex is outside of map
-      if (!gameHex) {
-        continue;
+      // now check neighbours
+      const neighbours = grid.neighbours(current!.hex);
+      for (const neighbour of neighbours) {
+        let nKey = neighbour.getKey();
+        // check if hex is valid
+        /// already got a faster way
+        let neighbourCost = cost[nKey];
+        if (neighbourCost && neighbourCost <= nextCost) {
+          continue;
+        }
+        let gameHex = hexes[nKey];
+        /// probably out of map or smth
+        if (!gameHex) {
+          continue;
+        }
+        //TODO: we can move through friendly chips (heroes, minions?)
+        /// a chip on the hex
+        if (chips[nKey]) {
+          continue;
+        }
+        /// cant visit it
+        if (!this.canMoveToTerrain(gameHex)) {
+          continue;
+        }
+        // add to queue
+        queue.push(gameHex);
+        cost[nKey] = nextCost;
       }
-      // can not move to hex
-      if (!this.canMoveToTerrain(gameHex)) {
-        continue;
-      }
-      // a chip on the hex
-      if (chips[key]) {
-        continue;
-      }
-      result.push(gameHex);
     }
-    return result;
+    return reachable;
   }
 
   // Returns a list of hexes where this chip can move to
