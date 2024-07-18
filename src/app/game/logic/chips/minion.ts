@@ -31,7 +31,7 @@ export class Minion extends ContainerChip {
     this.health = this.countOfChip(ChipType.CHIP_HEALTH);
   }
 
-  override getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>) {
-    return this.getReachableHexes(grid, hexes, 2);
+  override getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>, chips: Dict<Chip | null>) {
+    return this.getReachableHexes(grid, hexes, chips, 2);
   }
 }

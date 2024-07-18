@@ -33,7 +33,7 @@ export abstract class Chip extends GameElement {
     }
   }
 
-  canMoveToHex(hex: GameHex) {
+  canMoveToTerrain(hex: GameHex) {
     return hex.terrain == Terrain.Path;
   }
 
@@ -41,8 +41,9 @@ export abstract class Chip extends GameElement {
     return `chip/${Chip.sanitizeName(this.data!.name)}.png`;
   }
 
+  //TODO: we need to check if we can pathfind to those, not check for a simple radius
   // Returns the hexes in radius `radius` this chip can move to
-  getReachableHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>, radius: number) {
+  getReachableHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>, chips: Dict<Chip | null>, radius: number) {
     const traverser = spiral(
       {
         start: this.hex!.hex.coords(),
@@ -54,13 +55,18 @@ export abstract class Chip extends GameElement {
       if (h == this.hex!.hex) {
         continue;
       }
-      let gameHex = hexes[h.getKey()];
+      const key = h.getKey();
+      let gameHex = hexes[key];
       // hex is outside of map
       if (!gameHex) {
         continue;
       }
       // can not move to hex
-      if (!this.canMoveToHex(gameHex)) {
+      if (!this.canMoveToTerrain(gameHex)) {
+        continue;
+      }
+      // a chip on the hex
+      if (chips[key]) {
         continue;
       }
       result.push(gameHex);
@@ -69,7 +75,7 @@ export abstract class Chip extends GameElement {
   }
 
   // Returns a list of hexes where this chip can move to
-  getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>) : GameHex[] {
+  getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>, chips: Dict<Chip | null>) : GameHex[] {
     return [];
   }
 }

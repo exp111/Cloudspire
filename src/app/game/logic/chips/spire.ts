@@ -25,7 +25,7 @@ export class Spire extends ContainerChip {
     this.range = this.countOfChip(ChipType.UPGRADE_RANGE) + 1;
   }
 
-  override canMoveToHex(hex: GameHex): boolean {
+  override canMoveToTerrain(hex: GameHex): boolean {
     // can't move //TODO: talents?
     return false;
   }

@@ -41,12 +41,12 @@ export class Hero extends ContainerChip {
     return `chip/${Hero.sanitizeName(this.data.name)}${!this.promoted ? "_front" : "_back"}.png`;
   }
 
-  override canMoveToHex(hex: GameHex): boolean {
+  override canMoveToTerrain(hex: GameHex): boolean {
     let allowance = this.promoted ? this.data.promotedAllowance : this.data.allowance;
     return allowance >= hex.terrain;
   }
 
-  override getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>) {
-    return this.getReachableHexes(grid, hexes, this.data.movement);
+  override getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>, chips: Dict<Chip | null>) {
+    return this.getReachableHexes(grid, hexes, chips, this.data.movement);
   }
 }

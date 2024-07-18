@@ -82,10 +82,11 @@ export class GameService {
     }
 
     // unit cant move here
-    if (!selected.canMoveToHex(gameHex)) {
+    if (!selected.canMoveToTerrain(gameHex)) {
       return;
     }
     // move selected chip to here
+    //TODO: check if we can actually reach hex
     this.moveChip(selected, gameHex);
     this.deselectChip();
   }
@@ -104,7 +105,7 @@ export class GameService {
     }
 
     // unit cant move here
-    if (!this.selectedChip.canMoveToHex(gameHex)) {
+    if (!this.selectedChip.canMoveToTerrain(gameHex)) {
       this.onHidePreview();
       return;
     }
@@ -167,7 +168,7 @@ export class GameService {
   }
 
   getMovementHexes(chip: Chip) {
-    return chip.getPossibleMovementHexes(this.grid, this.hexes);
+    return chip.getPossibleMovementHexes(this.grid, this.hexes, this.chips);
   }
 
   // Scenario
