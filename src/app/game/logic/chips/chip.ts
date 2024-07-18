@@ -97,6 +97,11 @@ export abstract class Chip extends GameElement {
   getPossibleMovementHexes(grid: Grid<Hex>, hexes: Dict<GameHex | null>, chips: Dict<Chip | null>) : GameHex[] {
     return [];
   }
+
+  canReachTile(grid: Grid<Hex>, hexes: Dict<GameHex | null>, chips: Dict<Chip | null>, hex: GameHex) {
+    const reachable = this.getPossibleMovementHexes(grid, hexes, chips);
+    return reachable.includes(hex);
+  }
 }
 
 type Class<T> = new (...args: any[]) => T;

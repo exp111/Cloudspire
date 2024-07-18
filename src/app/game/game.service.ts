@@ -85,8 +85,11 @@ export class GameService {
     if (!selected.canMoveToTerrain(gameHex)) {
       return;
     }
+    // check if we can actually reach hex
+    if (!selected.canReachTile(this.grid, this.hexes, this.chips, gameHex)) {
+      return;
+    }
     // move selected chip to here
-    //TODO: check if we can actually reach hex
     this.moveChip(selected, gameHex);
     this.deselectChip();
   }
