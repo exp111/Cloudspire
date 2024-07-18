@@ -7,7 +7,7 @@ import {Grid, Hex} from "honeycomb-grid";
 import {Dict} from "pixi.js";
 
 export class Minion extends ContainerChip {
-  override type = ChipType.HERO;
+  override type = ChipType.MINION;
   override data: MinionData;
   health!: number;
   //TODO: other stats

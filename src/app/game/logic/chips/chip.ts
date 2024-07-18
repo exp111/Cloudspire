@@ -3,7 +3,7 @@ import {Data} from "../../../../data/data";
 import {GameHex} from "../hex";
 import {FactionType, Terrain} from "../../../../data/enums";
 import {GameElement} from "../game";
-import {Grid, Hex, spiral} from "honeycomb-grid";
+import {Grid, Hex} from "honeycomb-grid";
 import {Dict} from "pixi.js";
 
 export enum ChipType {
