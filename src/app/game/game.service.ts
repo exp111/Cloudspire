@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {EventEmitter, Injectable} from '@angular/core';
 import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from "honeycomb-grid";
 import {Fortress} from "./logic/fortress";
 import {Dict} from "pixi.js";
@@ -46,11 +46,11 @@ export class GameService {
 
   selectedChip: Chip | null = null;
   // Events //TODO: proper event class?
-  onChipSelected!: (c: Chip) => void;
-  onChipDeselected!: (c: Chip) => void;
-  onChipMoved!: (c:Chip, h:GameHex) => void;
-  onHidePreview!: () => void;
-  onShowPreview!: (h:GameHex) => void;
+  onChipSelected = new EventEmitter<Chip>();
+  onChipDeselected = new EventEmitter<Chip>();
+  onChipMoved = new EventEmitter<{chip: Chip, hex: GameHex}>();
+  onHidePreview= new EventEmitter<void>();
+  onShowPreview = new EventEmitter<GameHex>();
 
   constructor() {
     GameService.Instance = this;
@@ -103,23 +103,23 @@ export class GameService {
     let gameHex = this.hexes[key];
     // not inside the map
     if (!gameHex) {
-      this.onHidePreview();
+      this.onHidePreview.emit();
       return;
     }
 
     // unit cant move here
     if (!this.selectedChip.canMoveToTerrain(gameHex)) {
-      this.onHidePreview();
+      this.onHidePreview.emit();
       return;
     }
 
     let chip = this.chips[key];
     if (chip) {
       // dont show fakechip if any other chip is here
-      this.onHidePreview();
+      this.onHidePreview.emit();
       return;
     }
-    this.onShowPreview(gameHex);
+    this.onShowPreview.emit(gameHex);
   }
 
   //TODO: we cant move this into the model class, so maybe into a chipService/Controller?
@@ -149,7 +149,7 @@ export class GameService {
     this.chips[chip.hex!.hex.getKey()] = null;
     this.chips[hex.hex.getKey()] = chip;
     chip.hex = hex;
-    this.onChipMoved(chip, hex);
+    this.onChipMoved.emit({chip, hex});
   }
 
   deselectChip() {
@@ -159,7 +159,7 @@ export class GameService {
     }
 
     // send event
-    this.onChipDeselected(this.selectedChip);
+    this.onChipDeselected.emit(this.selectedChip);
     // unselect
     this.selectedChip = null;
   }
@@ -167,7 +167,7 @@ export class GameService {
   selectChip(chip: Chip) {
     this.selectedChip = chip;
     // send event
-    this.onChipSelected(chip);
+    this.onChipSelected.emit(chip);
   }
 
   getMovementHexes(chip: Chip) {

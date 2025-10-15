@@ -130,11 +130,11 @@ export class MapComponent implements OnInit {
     }
 
     /// Game
-    this.game.onChipSelected = this.selectChip.bind(this);
-    this.game.onChipDeselected = this.deselectChip.bind(this);
-    this.game.onChipMoved = this.moveChip.bind(this);
-    this.game.onHidePreview = this.hidePreview.bind(this);
-    this.game.onShowPreview = this.showPreview.bind(this);
+    this.game.onChipSelected.subscribe({next: (c: Chip) => this.selectChip(c)});
+    this.game.onChipDeselected.subscribe({next: (c: Chip) => this.deselectChip(c)});
+    this.game.onChipMoved.subscribe({next: (params: { chip: Chip; hex: GameHex; }) => this.moveChip(params.chip, params.hex)});
+    this.game.onHidePreview.subscribe({next: () => this.hidePreview});
+    this.game.onShowPreview.subscribe({next: (v: GameHex) => this.showPreview(v)});
 
     // Build map
     for (let fortress of this.game.elements.fortress) {
