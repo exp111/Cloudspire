@@ -120,7 +120,7 @@ export class MapComponent implements OnInit {
         this.game.onHexClicked(hex);
       }
     }
-    //TODO: rather than a hover, let user select chip and then show all possible options
+    //TODO: fix mouseover not triggering sometimes
     this.viewport.onmouseover = (e) => {
       let hex = this.game.grid.pointToHex(this.viewport.toWorld(e.screen), {allowOutside: false});
       if (hex) {
