@@ -43,4 +43,14 @@ export class Data {
     ...this.Isles,
     ...this.Earthscapes
   ];
+
+  static createPool(array: ChipData[]): Record<string, number> {
+    return array.reduce((o, l) => ({ ...o, [l.name]: l.amount}), {});
+  }
+  // creates a pool of chips and their amount
+  static createPools() {
+    return {
+      chips: this.createPool(this.Chips)
+    }
+  }
 }

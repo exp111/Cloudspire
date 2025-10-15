@@ -1,6 +1,7 @@
 import {FactionType, Terrain} from "../enums";
 
 export abstract class ChipData {
+  amount = 1;
   faction!: FactionType;
   name!: string;
   cost!: number;

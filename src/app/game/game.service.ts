@@ -12,6 +12,9 @@ import {Faction} from "./logic/faction";
 import "../utils/grid.extensions";
 import "../utils/hex.extensions";
 import {HexUtils} from "../utils/hexUtils";
+import {Data} from "../../data/data";
+import {ChipData, LandmarkData} from "../../data/model/chip";
+import {LandmarksData} from "../../data/landmark";
 
 declare global {
   interface Window {
@@ -43,6 +46,7 @@ export class GameService {
     isles: [],
     earthscapes: []
   }
+  pool = Data.createPools();
 
   selectedChip: Chip | null = null;
   // Events //TODO: proper event class?
@@ -202,16 +206,19 @@ export class GameService {
     //TODO: special scenario setup (roll d6)
   }
 
+  // places landmarks on the remaining source spots
   placeLandmarks() {
-    //TODO: place random landmarks
-
     // get all hexes that have sources and no chips already on them
     let sources = Object.values(this.hexes).filter(h => h!.hasSource && !this.chips[h!.hex.getKey()]);
-    console.log(sources);
     // place a swamp at each source closest to the fortress
     let gateHexes = [...new Set(Object.values(this.fortress))].map(f => f!.gateHex);
-    console.log(gateHexes);
+    // get all swamps that are in the pool
+    let swamps = LandmarksData.Swamp.map(s => s.name).filter(s => this.pool.chips[s] > 0);
     for (let gate of gateHexes) {
+      if (swamps.length == 0) {
+        console.error(`Not enough swamps left. ${gateHexes.length} gates missing. Stopping placing landmarks.`)
+        return;
+      }
       let nearestSourceIndex: number | null = null;
       let distance = -1;
       for (let sourceIndex of sources.keys()) {
@@ -225,21 +232,26 @@ export class GameService {
         console.error("No nearest source found. Stopping placing landmarks.");
         return;
       }
-      let nearestSource = sources[nearestSourceIndex];
+      let nearestSource = sources[nearestSourceIndex]!;
       // remove source from pool
       sources.splice(Number(nearestSourceIndex), 1);
-      console.log("Nearest source:");
-      console.log(nearestSource);
-      // TODO: place swamp
+      // place swamp //TODO: place facedown
+      this.createLandmark(null, this.takeRandomItem(swamps), nearestSource.hex.col, nearestSource.hex.row);
     }
     // place landmarks on the remaining sources
+    // get remaining landmark pool
+    let landmarks = Data.Landmarks.map(l => l.name).filter(l => this.pool.chips[l] > 0);
     for (let source of sources) {
-      //TODO: place source
-      console.log(source);
+      if (landmarks.length == 0) {
+        console.error(`Not enough landmarks left. ${sources.length} sources missing. Stopping placing landmarks.`)
+        return;
+      }
+      //TODO: place facedown
+      this.createLandmark(null, this.takeRandomItem(landmarks), source!.hex.col, source!.hex.row)
     }
   }
 
-  // Helpers
+  // Helpers //TODO: outsource to utils?
   DirectionFromAngle(angle: number) {
     let arr: { [k: number]: Direction } = {
       30: Direction.NE,
@@ -261,6 +273,11 @@ export class GameService {
 
   rotatedMove(dir: Direction, rotation: number) {
     return move(this.DirectionFromAngle(this.DirectionToAngle(dir) + rotation * 60));
+  }
+
+  takeRandomItem<T>(array: T[]) {
+    const ind = Math.floor(Math.random() * array.length);
+    return array.splice(ind, 1)[0];
   }
 
   // create helpers
@@ -361,6 +378,10 @@ export class GameService {
   }
 
   createHero(faction: Faction, name: string, col: number, row: number, chips?: Chip[]) {
+    if (!this.removeFromPool(name)) {
+      console.error(`Can't spawn any more heroes with name ${name}`);
+      return;
+    }
     const key = HexUtils.getKeyFromPos(col, row);
     const hex = this.hexes[key]!;
     // add chip to list
@@ -371,6 +392,10 @@ export class GameService {
   }
 
   createLandmark(faction: Faction | null, name: string, col: number, row: number, chips?: Chip[]) {
+    if (!this.removeFromPool(name)) {
+      console.error(`Can't spawn any more landmarks with name ${name}`);
+      return;
+    }
     const key = HexUtils.getKeyFromPos(col, row);
     const hex = this.hexes[key]!;
     // add chip to list
@@ -381,6 +406,10 @@ export class GameService {
   }
 
   createSpire(faction: Faction, name: string, col: number, row: number, upgrades?: Chip[]) {
+    if (!this.removeFromPool(name)) {
+      console.error(`Can't spawn any more spires with name ${name}`);
+      return;
+    }
     const key = HexUtils.getKeyFromPos(col, row);
     const hex = this.hexes[key]!;
     // add chip to list
@@ -388,5 +417,15 @@ export class GameService {
     this.chips[key] = chip;
     this.elements.chips.push(chip);
     return chip;
+  }
+
+  // tries to remove the chip with the given name from the pool. returns false if no chips can be spawned anymore
+  removeFromPool(name: string) {
+    let amountLeft = this.pool.chips[name];
+    if (amountLeft <= 0) {
+      return false;
+    }
+    this.pool.chips[name] = amountLeft - 1;
+    return true;
   }
 }

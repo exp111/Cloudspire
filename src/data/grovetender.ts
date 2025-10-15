@@ -33,6 +33,7 @@ export class GrovetendersFactionData implements FactionData {
   spires = [
     new GrovetendersSpireData({
       name: "Shrubbery",
+      amount: 4,
       cost: 4,
       reward: 1,
       attack: 1,
@@ -41,6 +42,7 @@ export class GrovetendersFactionData implements FactionData {
     }),
     new GrovetendersSpireData({
       name: "Reetall",
+      amount: 4,
       cost: 5,
       reward: 2,
       attack: 1,
