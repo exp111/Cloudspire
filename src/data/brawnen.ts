@@ -21,12 +21,13 @@ export class BrawnenFactionData implements FactionData {
       allowance: Terrain.Forest,
       promotedReward: 4,
       promotedAttack: 2}),
+    //TODO: other brawnen heroes
   ];
   minions = [
-
+    //TODO: brawnen minions
   ];
   spires = [
-
+    //TODO: brawnen spires
   ];
   chips = [
     ...this.heroes,

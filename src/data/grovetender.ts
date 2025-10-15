@@ -25,9 +25,10 @@ export class GrovetendersFactionData implements FactionData {
       allowance: Terrain.Forest,
       promotedHealth: 3
     }),
+    //TODO: other grovetender heroes
   ];
   minions = [
-
+    //TODO: grovetender minions
   ];
   spires = [
     new GrovetendersSpireData({
@@ -46,6 +47,7 @@ export class GrovetendersFactionData implements FactionData {
       range: 1,
       capacity: 3
     }),
+    //TODO: other grovetender spires
   ];
   chips = [
     ...this.heroes,

@@ -197,6 +197,46 @@ export class GameService {
     this.createSpire(grovetenders, "Reetall", 6, 1, [new AttackUpgrade(), new RangeUpgrade(), new RangeUpgrade()]);
     this.createSpire(grovetenders, "Shrubbery", 7, 5, [new FortificationUpgrade(), new FortificationUpgrade()]);
     this.createSpire(grovetenders, "Shrubbery", 6, 6, [new FortificationUpgrade(), new FortificationUpgrade()]);
+    // general game setup
+    this.placeLandmarks();
+    //TODO: special scenario setup (roll d6)
+  }
+
+  placeLandmarks() {
+    //TODO: place random landmarks
+
+    // get all hexes that have sources and no chips already on them
+    let sources = Object.values(this.hexes).filter(h => h!.hasSource && !this.chips[h!.hex.getKey()]);
+    console.log(sources);
+    // place a swamp at each source closest to the fortress
+    let gateHexes = [...new Set(Object.values(this.fortress))].map(f => f!.gateHex);
+    console.log(gateHexes);
+    for (let gate of gateHexes) {
+      let nearestSourceIndex: number | null = null;
+      let distance = -1;
+      for (let sourceIndex of sources.keys()) {
+        let dist = this.grid.distance(gate.coords(), sources[sourceIndex]!.hex.coords());
+        if (distance == -1 || dist < distance) {
+          distance = dist;
+          nearestSourceIndex = sourceIndex;
+        }
+      }
+      if (!nearestSourceIndex) {
+        console.error("No nearest source found. Stopping placing landmarks.");
+        return;
+      }
+      let nearestSource = sources[nearestSourceIndex];
+      // remove source from pool
+      sources.splice(Number(nearestSourceIndex), 1);
+      console.log("Nearest source:");
+      console.log(nearestSource);
+      // TODO: place swamp
+    }
+    // place landmarks on the remaining sources
+    for (let source of sources) {
+      //TODO: place source
+      console.log(source);
+    }
   }
 
   // Helpers
