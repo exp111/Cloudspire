@@ -29,7 +29,7 @@ export class Data {
     ...this.Grovetenders.spires
     //TODO: market
   ];
-  static Landmarks= LandmarksData.Chips;
+  static Landmarks = LandmarksData.Chips;
   //TODO: other landmark non minions
   static Chips: ChipData[] = [
     ...this.Heroes,
