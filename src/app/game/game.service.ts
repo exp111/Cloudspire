@@ -234,7 +234,7 @@ export class GameService {
       let nearestSource = sources[nearestSourceIndex]!;
       // remove source from pool
       sources.splice(Number(nearestSourceIndex), 1);
-      // place swamp //TODO: place facedown
+      // place swamp
       this.createLandmark(null, this.takeRandomItem(swamps), nearestSource.hex.col, nearestSource.hex.row, true);
     }
     // place landmarks on the remaining sources
@@ -247,7 +247,6 @@ export class GameService {
         console.error(`Not enough landmarks left. ${sources.length} sources missing. Stopping placing landmarks.`)
         return;
       }
-      //TODO: place facedown
       this.createLandmark(null, this.takeRandomItem(landmarks), source!.hex.col, source!.hex.row, true)
     }
   }
