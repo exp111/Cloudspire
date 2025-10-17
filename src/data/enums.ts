@@ -17,3 +17,10 @@ export enum FactionType {
   HORIOZONS_WRATH,
   UPRISING
 }
+
+export enum LandmarkType {
+  SWAMP,
+  RUINS,
+  TEMPLE,
+  ANCIENT_TRAXXYR
+}

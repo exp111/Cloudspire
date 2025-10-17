@@ -197,7 +197,7 @@ export class GameService {
     this.createEarthscape(15, 4, 9, true, 2);
 
     this.createHero(brawnen, "Awsh", 1, 7, [new HealthChip(), new HealthChip(), new HealthChip()]);
-    this.createLandmark(null, "Thoraxx", 3, 6, [new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip()]);
+    this.createLandmark(null, "Thoraxx", 3, 6, false, [new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip()]);
     this.createSpire(grovetenders, "Reetall", 6, 1, [new AttackUpgrade(), new RangeUpgrade(), new RangeUpgrade()]);
     this.createSpire(grovetenders, "Shrubbery", 7, 5, [new FortificationUpgrade(), new FortificationUpgrade()]);
     this.createSpire(grovetenders, "Shrubbery", 6, 6, [new FortificationUpgrade(), new FortificationUpgrade()]);
@@ -236,7 +236,7 @@ export class GameService {
       // remove source from pool
       sources.splice(Number(nearestSourceIndex), 1);
       // place swamp //TODO: place facedown
-      this.createLandmark(null, this.takeRandomItem(swamps), nearestSource.hex.col, nearestSource.hex.row);
+      this.createLandmark(null, this.takeRandomItem(swamps), nearestSource.hex.col, nearestSource.hex.row, true);
     }
     // place landmarks on the remaining sources
     // get remaining landmark pool
@@ -247,7 +247,7 @@ export class GameService {
         return;
       }
       //TODO: place facedown
-      this.createLandmark(null, this.takeRandomItem(landmarks), source!.hex.col, source!.hex.row)
+      this.createLandmark(null, this.takeRandomItem(landmarks), source!.hex.col, source!.hex.row, true)
     }
   }
 
@@ -391,7 +391,7 @@ export class GameService {
     return chip;
   }
 
-  createLandmark(faction: Faction | null, name: string, col: number, row: number, chips?: Chip[]) {
+  createLandmark(faction: Faction | null, name: string, col: number, row: number, faceDown = true, chips?: Chip[]) {
     if (!this.removeFromPool(name)) {
       console.error(`Can't spawn any more landmarks with name ${name}`);
       return;
@@ -399,7 +399,7 @@ export class GameService {
     const key = HexUtils.getKeyFromPos(col, row);
     const hex = this.hexes[key]!;
     // add chip to list
-    const chip = new Landmark(hex, name, faction ? faction.type : FactionType.NEUTRAL, chips);
+    const chip = new Landmark(hex, name, faction ? faction.type : FactionType.NEUTRAL, faceDown, chips);
     this.chips[key] = chip;
     this.elements.chips.push(chip);
     return chip;

@@ -1,4 +1,4 @@
-import {FactionType, Terrain} from "../enums";
+import {FactionType, LandmarkType, Terrain} from "../enums";
 
 export abstract class ChipData {
   amount = 1;
@@ -14,6 +14,7 @@ export abstract class ChipData {
 
 //TODO: talents
 export class LandmarkData extends ChipData {
+  type!: LandmarkType;
   health!: number;
   attack: number = 0;
   movement!: number;
