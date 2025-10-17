@@ -22,5 +22,5 @@ export enum LandmarkType {
   SWAMP,
   RUINS,
   TEMPLE,
-  ANCIENT_TRAXXYR
+  UNIQUE
 }

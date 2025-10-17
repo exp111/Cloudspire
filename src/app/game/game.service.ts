@@ -7,13 +7,12 @@ import {Earthscape, GameHex, Isle} from "./logic/hex";
 import {Landmark} from "./logic/chips/landmark";
 import {Spire} from "./logic/chips/spire";
 import {Hero} from "./logic/chips/hero";
-import {FactionType} from "../../data/enums";
+import {FactionType, LandmarkType} from "../../data/enums";
 import {Faction} from "./logic/faction";
 import "../utils/grid.extensions";
 import "../utils/hex.extensions";
 import {HexUtils} from "../utils/hexUtils";
 import {Data} from "../../data/data";
-import {ChipData, LandmarkData} from "../../data/model/chip";
 import {LandmarksData} from "../../data/landmark";
 
 declare global {
@@ -52,8 +51,8 @@ export class GameService {
   // Events //TODO: proper event class?
   onChipSelected = new EventEmitter<Chip>();
   onChipDeselected = new EventEmitter<Chip>();
-  onChipMoved = new EventEmitter<{chip: Chip, hex: GameHex}>();
-  onHidePreview= new EventEmitter<void>();
+  onChipMoved = new EventEmitter<{ chip: Chip, hex: GameHex }>();
+  onHidePreview = new EventEmitter<void>();
   onShowPreview = new EventEmitter<GameHex>();
 
   constructor() {
@@ -239,8 +238,10 @@ export class GameService {
       this.createLandmark(null, this.takeRandomItem(swamps), nearestSource.hex.col, nearestSource.hex.row, true);
     }
     // place landmarks on the remaining sources
-    // get remaining landmark pool
-    let landmarks = Data.Landmarks.map(l => l.name).filter(l => this.pool.chips[l] > 0);
+    // get remaining landmark pool (no unique landmarks)
+    let landmarks = Data.Landmarks
+      .filter(l => l.type != LandmarkType.UNIQUE && this.pool.chips[l.name] > 0)
+      .map(l => l.name);
     for (let source of sources) {
       if (landmarks.length == 0) {
         console.error(`Not enough landmarks left. ${sources.length} sources missing. Stopping placing landmarks.`)

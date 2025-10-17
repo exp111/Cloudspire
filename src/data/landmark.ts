@@ -123,8 +123,8 @@ export class LandmarksData {
       //TODO: upgrade
     })
   ];
-  static Traxxyr = new LandmarkData({
-    type: LandmarkType.ANCIENT_TRAXXYR,
+  static AncientTraxxyr = new LandmarkData({
+    type: LandmarkType.UNIQUE,
     name: "Ancient Traxxyr",
     faction: FactionType.NEUTRAL,
     reward: 6
@@ -134,6 +134,6 @@ export class LandmarksData {
     ...LandmarksData.Swamp,
     ...LandmarksData.Ruins,
     ...LandmarksData.Temple,
-    LandmarksData.Traxxyr
+    LandmarksData.AncientTraxxyr
   ];
 }
