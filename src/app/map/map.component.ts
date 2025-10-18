@@ -53,7 +53,7 @@ declare global {
   standalone: true,
   imports: [],
   templateUrl: './map.component.html',
-  styleUrl: './map.component.css'
+  styleUrl: './map.component.scss'
 })
 export class MapComponent implements OnInit {
   @ViewChild("map")

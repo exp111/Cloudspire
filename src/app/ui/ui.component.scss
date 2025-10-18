@@ -1,19 +1,19 @@
 :host {
-  /* float over whole screen */
+  // float over whole screen
   position: absolute;
   top: 0;
   left: 0;
   height: 100%;
   width: 100%;
-  /* higher than map */
+  // higher than map
   z-index: 2;
-  /* deactivate pointer events */
+  // deactivate pointer events
   pointer-events: none;
 }
 
 :host * {
   position: absolute;
-  /* activate pointer events for children */
+  // activate pointer events for children
   pointer-events: initial;
 }
 

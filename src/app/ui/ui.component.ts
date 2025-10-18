@@ -12,7 +12,7 @@ import {MatButton} from "@angular/material/button";
     MatMenuItem
   ],
   templateUrl: './ui.component.html',
-  styleUrl: './ui.component.css'
+  styleUrl: './ui.component.scss'
 })
 export class UiComponent {
 

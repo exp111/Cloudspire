@@ -7,7 +7,7 @@ import {UiComponent} from "./ui/ui.component";
   standalone: true,
   imports: [MapComponent, UiComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.scss'
 })
 export class AppComponent {
   title = 'Cloudspire';
