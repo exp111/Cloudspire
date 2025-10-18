@@ -65,9 +65,23 @@ export class HeroData extends ChipData {
 
 export class MinionData extends ChipData {
   health!: number;
+  attack!: number;
+  movement!: number;
+  allowance!: Terrain;
+  promotedReward!: number;
+  promotedHealth!: number;
+  promotedAttack!: number;
+  promotedMovement!: number;
+  promotedAllowance!: Terrain;
 
   constructor(data: Partial<MinionData>) {
     super(data);
     this.health = this.health ?? 0;
+    this.allowance = this.allowance ?? Terrain.Grass;
+    this.promotedReward = this.promotedReward ?? this.reward;
+    this.promotedHealth = this.promotedHealth ?? this.health;
+    this.promotedAttack = this.promotedAttack ?? this.attack;
+    this.promotedMovement = this.promotedMovement ?? this.movement;
+    this.promotedAllowance = this.promotedAllowance ?? this.allowance;
   }
 }
