@@ -28,6 +28,7 @@ export class Minion extends ContainerChip {
   }
 
   override getFileName(): string {
+    //TODO: support promoted backs
     return `chip/${FactionType[this.faction].toLowerCase()}/${Minion.sanitizeName(this.data.name)}.png`;
   }
 

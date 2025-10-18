@@ -17,6 +17,7 @@ export enum ChipType {
   CHIP_HEALTH
 }
 
+// Base chip class
 export abstract class Chip extends GameElement {
   abstract type: ChipType;
   hex: GameHex | undefined;
@@ -105,6 +106,7 @@ export abstract class Chip extends GameElement {
 }
 
 type Class<T> = new (...args: any[]) => T;
+// Chip that can hold any amount of chips under it (ie upgrade chips)
 export abstract class ContainerChip extends Chip {
   // list of chips from top to bottom
   chips: Chip[];
@@ -119,7 +121,7 @@ export abstract class ContainerChip extends Chip {
     }
   }
 
-  // Adds an amount of chips of class `c` under tis chip
+  // Adds an amount of chips of class `c` under this chip
   addChips(c: Class<UpgradeChip>, num: number) {
     for (let i = 0; i < num; i++) {
       this.chips.push(new c());

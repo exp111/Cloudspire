@@ -45,7 +45,7 @@ export class GameService {
     isles: [],
     earthscapes: []
   }
-  pool = Data.createPools();
+  pool = Data.createPools(); //TODO: support spires being dual sided
 
   selectedChip: Chip | null = null;
   // Events //TODO: proper event class?
