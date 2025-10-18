@@ -11,6 +11,7 @@ export class Minion extends ContainerChip {
   override data: MinionData;
   health!: number;
   //TODO: other stats
+  promoted: boolean = false;
 
   constructor(hex: GameHex, name: string, faction?: FactionType, chips?: Chip[]) {
     super(hex, name, faction, chips);
@@ -28,8 +29,7 @@ export class Minion extends ContainerChip {
   }
 
   override getFileName(): string {
-    //TODO: support promoted backs
-    return `chip/${FactionType[this.faction].toLowerCase()}/${Minion.sanitizeName(this.data.name)}.png`;
+    return `chip/${FactionType[this.faction].toLowerCase()}/${Minion.sanitizeName(this.data.name)}${this.promoted ? "_promoted" : ""}.png`;
   }
 
   calculateStats() {
