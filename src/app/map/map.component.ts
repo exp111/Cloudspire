@@ -1,5 +1,4 @@
 import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
-import {NgOptimizedImage} from "@angular/common";
 import * as PIXI from "pixi.js";
 import {ColorSource, PointData, Sprite, Texture} from "pixi.js";
 import {Viewport} from "pixi-viewport";
@@ -52,9 +51,7 @@ declare global {
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [
-    NgOptimizedImage
-  ],
+  imports: [],
   templateUrl: './map.component.html',
   styleUrl: './map.component.css'
 })
