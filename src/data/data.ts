@@ -6,10 +6,12 @@ import {LandmarksData} from "./landmark";
 import {ChipData, HeroData, MinionData} from "./model/chip";
 import {GrovetendersFactionData} from "./grovetender";
 import {FactionData} from "./model/faction";
+import {MarketData} from "./market";
 
 export class Data {
-  static Brawnen: BrawnenFactionData = new BrawnenFactionData();
-  static Grovetenders: GrovetendersFactionData = new GrovetendersFactionData();
+  static Brawnen = new BrawnenFactionData();
+  static Grovetenders = new GrovetendersFactionData();
+  static Market = new MarketData();
 
   static Factions: FactionData[] = [
     this.Brawnen,
@@ -17,17 +19,18 @@ export class Data {
   ];
   static Heroes: HeroData[] = [
     ...this.Brawnen.heroes,
-    ...this.Grovetenders.heroes
-    //TODO: market
+    ...this.Grovetenders.heroes,
+    ...this.Market.heroes
   ];
   static Minions: MinionData[] = [
     ...this.Brawnen.minions,
     ...this.Grovetenders.minions,
+    ...this.Market.minions
   ];
   static Spires = [
     ...this.Brawnen.spires,
-    ...this.Grovetenders.spires
-    //TODO: market
+    ...this.Grovetenders.spires,
+    ...this.Market.spires
   ];
   static Landmarks = LandmarksData.Chips;
   //TODO: other landmark non minions

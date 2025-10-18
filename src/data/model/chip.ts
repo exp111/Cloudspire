@@ -85,3 +85,9 @@ export class MinionData extends ChipData {
     this.promotedAllowance = this.promotedAllowance ?? this.allowance;
   }
 }
+
+export class EquipmentData extends ChipData {
+  constructor(data: Partial<EquipmentData>) {
+    super(data);
+  }
+}
