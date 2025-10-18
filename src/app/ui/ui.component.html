@@ -1,1 +1,12 @@
-<button class="burger-menu">Menü</button>
+<div ngbDropdown class="burger-menu">
+  <button ngbDropdownToggle class="btn btn-secondary dropdown-toggle" type="button">
+    <!-- TODO: burger menu icon -->
+    Menü
+  </button>
+  <div ngbDropdownMenu>
+    <!-- TODO: show modal for about -->
+    <a ngbDropdownItem href="https://www.github.com/exp111/Cloudspire" target="_blank">About</a>
+    <!-- TODO: submenu? -->
+    <a ngbDropdownItem href="assets/rules/rulebook.pdf" target="_blank">Rules</a>
+  </div>
+</div>

@@ -12,12 +12,13 @@
 }
 
 :host * {
-  position: absolute;
   // activate pointer events for children
   pointer-events: initial;
 }
 
 .burger-menu {
-  top: 1%;
-  right: 1%;
+  //TODO: align this with flex or smth?
+  float: right;
+  margin-top: 1rem;
+  margin-right: 1rem;
 }
