@@ -27,6 +27,10 @@ export class Minion extends ContainerChip {
     }
   }
 
+  override getFileName(): string {
+    return `chip/${FactionType[this.faction].toLowerCase()}/${Minion.sanitizeName(this.data.name)}.png`;
+  }
+
   calculateStats() {
     this.health = this.countOfChip(ChipType.CHIP_HEALTH);
   }

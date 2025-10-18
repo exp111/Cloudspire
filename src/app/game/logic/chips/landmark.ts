@@ -24,7 +24,7 @@ export class Landmark extends ContainerChip {
   }
 
   override getFileName() {
-    return `chip/${this.faceDown ? `landmark_${LandmarkType[this.data.type].toLowerCase()}` : Landmark.sanitizeName(this.data.name)}.png`;
+    return `chip/landmark/${this.faceDown ? `landmark_${LandmarkType[this.data.type].toLowerCase()}` : Landmark.sanitizeName(this.data.name)}.png`;
   }
 
   calculateStats() {

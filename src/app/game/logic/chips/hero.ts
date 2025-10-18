@@ -38,7 +38,7 @@ export class Hero extends ContainerChip {
   }
 
   override getFileName() {
-    return `chip/${Hero.sanitizeName(this.data.name)}${!this.promoted ? "_front" : "_back"}.png`;
+    return `chip/${FactionType[this.faction].toLowerCase()}/${Hero.sanitizeName(this.data.name)}${!this.promoted ? "_front" : "_back"}.png`;
   }
 
   override canMoveToTerrain(hex: GameHex): boolean {

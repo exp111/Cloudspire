@@ -30,6 +30,10 @@ export class Spire extends ContainerChip {
     return false;
   }
 
+  override getFileName(): string {
+    return `chip/${FactionType[this.faction].toLowerCase()}/${Spire.sanitizeName(this.data.name)}.png`;
+  }
+
   createDefaultChips(): void {
     this.addChips(AttackUpgrade, this.data.attack);
     this.addChips(FortificationUpgrade, this.data.fortification);
