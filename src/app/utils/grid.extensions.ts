@@ -2,6 +2,7 @@ import {Grid, Hex} from "honeycomb-grid";
 
 export {}
 
+// extension methods for the honeycomb hex grid
 declare module "honeycomb-grid" {
   interface Grid<T> {
     neighbours(hex: T): T[];
@@ -17,6 +18,7 @@ const cube_direction_vectors = [
   {q: 0, r: +1, s: -1},
 ];
 
+// returns the hex neighbors of a grid hex
 Grid.prototype.neighbours = function (hex: Hex) {
   const neighbours = [];
   for (let dir of cube_direction_vectors) {

@@ -4,6 +4,7 @@ import {PointData} from "pixi.js";
 
 export {}
 
+// extension methods for the honeycomb hex
 declare module "honeycomb-grid" {
   interface Hex {
     coords(): HexCoordinates;

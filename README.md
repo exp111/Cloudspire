@@ -18,3 +18,6 @@
 - Does not work at all (loads assets but doesnt render shit)
 
 ### Konva/Fabric/oCanvas/ZIM?
+
+# TODO
+- tutorial following solo scenario tutorial (blue boxes)

@@ -63,6 +63,27 @@ export class GameService {
     this.createScenario1();
   }
 
+  //TODO: build this into a state machine? or should this be the main game loop? run after scenario creation
+  //  how do we deal with user choices
+  roundOrder() {
+    //TODO: set first player according to scenario wave
+    //TODO: set mark? just set opponents gate for now
+    // 1. TODO: event phase
+    // - check scenarios event phase. most likely roll event dice
+    // 2. TODO: income phase
+    // - give player source according to scenario table for current wave
+    // 3. TODO: market phase (in turn order)
+    // - do ai purchase if specified by scenario. highest source cost if multiple options are available (user choice if tied). if no options, does nothing.
+    // - allow player to buy items
+    // 4. TODO: build phase (in turn order)
+    // - do ai build if specified by scenario (if tied users choice)
+    // - allow player to build
+    // 5. TODO: prep choice
+    // - build ai deployment stack according to scenario. if any unit not in the barracks, skip that unit
+    // - allow user to buy & build deployment stack with given cp costs
+    //TODO: onslaught phase
+  }
+
   // Events
   onHexClicked(hex: Hex) {
     let key = hex.getKey();
@@ -178,6 +199,7 @@ export class GameService {
   }
 
   // Scenario
+  //TODO: outsource scenario into own class?
   createScenario1() {
     //TODO: round order
     const brawnen = this.createFaction(FactionType.BRAWNEN, true);
