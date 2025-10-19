@@ -1,1 +1,0 @@
-import{$ as n}from"./chunk-L22JM56C.js";var e={};function s(r){let t=e[r];if(t)return t;let i=new Int32Array(r);for(let o=0;o<r;o++)i[o]=o;return t=e[r]=new n({uTextures:{value:i,type:"i32",size:r}},{isStatic:!0}),t}export{s as a};
