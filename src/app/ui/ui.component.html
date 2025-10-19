@@ -1,4 +1,4 @@
-<div ngbDropdown class="burger-menu">
+<div ngbDropdown class="burger-menu" autoClose="outside">
   <button ngbDropdownToggle class="btn btn-secondary dropdown-toggle" type="button">
     <!-- TODO: burger menu icon -->
     Menü
@@ -6,7 +6,21 @@
   <div ngbDropdownMenu>
     <!-- TODO: show modal for about -->
     <a ngbDropdownItem href="https://www.github.com/exp111/Cloudspire" target="_blank">About</a>
-    <!-- TODO: submenu? -->
-    <a ngbDropdownItem href="assets/rules/rulebook.pdf" target="_blank">Rules</a>
+    <div ngbDropdown placement="start-top">
+      <button ngbDropdownItem ngbDropdownToggle>
+        Rules
+      </button>
+      <div ngbDropdownMenu>
+        <a ngbDropdownItem href="assets/rules/rulebook.pdf" target="_blank">Rulebook</a>
+        <a ngbDropdownItem href="assets/rules/rules_reference.pdf" target="_blank">Rules Reference</a>
+        <a ngbDropdownItem href="assets/rules/reference_sheets.pdf" target="_blank">Faction Reference</a>
+        <hr class="dropdown-divider">
+        <a ngbDropdownItem href="assets/rules/master_talent_list.pdf" target="_blank">Talents</a>
+        <a ngbDropdownItem href="assets/rules/ai_talent_list.pdf" target="_blank">AI Talents</a>
+        <hr class="dropdown-divider">
+        <a ngbDropdownItem href="assets/rules/solo_scenarios.pdf" target="_blank">Solo Scenarios</a>
+        <a ngbDropdownItem href="assets/rules/cooperative_scenarios.pdf" target="_blank">Coop Scenarios</a>
+      </div>
+    </div>
   </div>
 </div>
