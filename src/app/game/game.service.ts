@@ -2,7 +2,7 @@ import {EventEmitter, Injectable} from '@angular/core';
 import {defineHex, Direction, fromCoordinates, Grid, Hex, move, rectangle} from "honeycomb-grid";
 import {Fortress} from "./logic/fortress";
 import {Dict} from "pixi.js";
-import {AttackUpgrade, Chip, FortificationUpgrade, HealthChip, RangeUpgrade} from "./logic/chips/chip";
+import {Chip} from "./logic/chips/chip";
 import {Earthscape, GameHex, Isle} from "./logic/hex";
 import {Landmark} from "./logic/chips/landmark";
 import {Spire} from "./logic/chips/spire";
@@ -14,6 +14,8 @@ import "../utils/hex.extensions";
 import {HexUtils} from "../utils/hexUtils";
 import {Data} from "../../data/data";
 import {LandmarksData} from "../../data/landmark";
+import {Scenario} from "./logic/scenarios/scenario";
+import {TutorialScenario} from "./logic/scenarios/tutorial";
 
 declare global {
   interface Window {
@@ -56,6 +58,7 @@ export class GameService {
     earthscapes: []
   }
   pool = Data.createPools(); //TODO: support spires being dual sided
+  scenario: Scenario;
 
   selectedChip: Chip | null = null;
   // Events //TODO: proper event class?
@@ -68,13 +71,13 @@ export class GameService {
   constructor() {
     GameService.Instance = this;
     window.Game = this;
-    //TODO: load from scenario file
+    //TODO: let user select scenario
     this.grid = new Grid(this.hexBuilder, rectangle({width: 9, height: 14}));
-    this.createScenario1();
+    this.scenario = new TutorialScenario(this);
+    this.scenario.setup();
   }
 
   status = "";
-  amountWaves = 3;
   currentRound = 0;
   currentPhase = Phase.EVENT;
   //TODO: add log
@@ -100,7 +103,7 @@ export class GameService {
     //TODO: onslaught phase
     switch (this.currentPhase) {
       case Phase.EVENT:
-        this.handleEventPhase();
+        this.scenario.handleEventPhase();
         this.goToPhase(Phase.INCOME);
         break;
       default:
@@ -226,49 +229,6 @@ export class GameService {
 
   getMovementHexes(chip: Chip) {
     return chip.getPossibleMovementHexes(this.grid, this.hexes, this.chips);
-  }
-
-  // Scenario
-  //TODO: outsource scenario into own class?
-  createScenario1() {
-    //TODO: round order
-    const brawnen = this.createFaction(FactionType.BRAWNEN, true);
-    const grovetenders = this.createFaction(FactionType.GROVETENDERS, false);
-
-    this.createFortress(grovetenders, 2, 2, 1, 10);
-    this.createFortress(brawnen, 4, 10, -1, 10, 0);
-
-    this.createIsle(8, 4, 2, 3);
-    this.createIsle(4, 6, 5, 0);
-    this.createIsle(1, 3, 6, 4);
-
-    this.createEarthscape(10, 6, 1, false, 0);
-    this.createEarthscape(13, 5, 4, true, 2);
-    this.createEarthscape(16, 3, 10, true, 1);
-    this.createEarthscape(15, 4, 9, true, 2);
-
-    this.createHero(brawnen, "Awsh", 1, 7, [new HealthChip(), new HealthChip(), new HealthChip()]);
-    this.createLandmark(null, "Thoraxx", 3, 6, false, [new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip(), new HealthChip()]);
-    this.createSpire(grovetenders, "Reetall", 6, 1, [new AttackUpgrade(), new RangeUpgrade(), new RangeUpgrade()]);
-    this.createSpire(grovetenders, "Shrubbery", 7, 5, [new FortificationUpgrade(), new FortificationUpgrade()]);
-    this.createSpire(grovetenders, "Shrubbery", 6, 6, [new FortificationUpgrade(), new FortificationUpgrade()]);
-    // general game setup
-    this.placeLandmarks();
-    //TODO: special scenario setup (roll d6)
-  }
-
-  handleEventPhase() {
-    switch (this.currentRound) {
-      case 1:
-        // nothing
-        break;
-      case 2:
-      case 3:
-        //TODO: roll event die
-        break;
-      default:
-        console.error(`Invalid round: ${this.currentRound}`);
-    }
   }
 
   // places landmarks on the remaining source spots
