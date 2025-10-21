@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
+import {Component, ElementRef, inject, OnInit, Renderer2, ViewChild} from '@angular/core';
 import * as PIXI from "pixi.js";
 import {ColorSource, PointData, Sprite, Texture} from "pixi.js";
 import {Viewport} from "pixi-viewport";
@@ -58,10 +58,8 @@ export class MapComponent implements OnInit {
   @ViewChild("map")
   mapRef!: ElementRef;
 
-  constructor(private game: GameService,
-              private renderer: Renderer2) {
-    window.GameMap = this;
-  }
+  game = inject(GameService);
+  renderer = inject(Renderer2);
 
   RESOURCE_BASE_PATH = "assets";
   SPRITE_CHIP_WIDTH = 256;
@@ -78,6 +76,10 @@ export class MapComponent implements OnInit {
 
   sprites: PIXI.Container[] = [];
   fakeChips: PIXI.Sprite[] = [];
+
+  constructor() {
+    window.GameMap = this;
+  }
 
   async ngOnInit() {
     // init app
