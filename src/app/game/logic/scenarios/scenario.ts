@@ -1,7 +1,14 @@
 import {GameService} from "../../game.service";
 
+declare global {
+  interface Window {
+    Scenario: Scenario;
+  }
+}
+
 export abstract class Scenario {
   constructor(public game: GameService) {
+    window.Scenario = this;
   }
 
   abstract name: string;

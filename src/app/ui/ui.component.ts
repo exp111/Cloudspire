@@ -1,6 +1,12 @@
 import {Component} from '@angular/core';
 import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle} from "@ng-bootstrap/ng-bootstrap";
 
+declare global {
+  interface Window {
+    UI: UiComponent;
+  }
+}
+
 @Component({
     selector: 'app-ui',
     imports: [
@@ -13,4 +19,7 @@ import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle} from "
     styleUrl: './ui.component.scss'
 })
 export class UiComponent {
+  constructor() {
+    window.UI = this;
+  }
 }
