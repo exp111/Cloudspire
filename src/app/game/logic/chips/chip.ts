@@ -138,6 +138,10 @@ export abstract class ContainerChip extends Chip {
 }
 
 export abstract class UpgradeChip extends Chip {
+  // needed to make constructor accessible from outside
+  constructor() {
+    super();
+  }
 }
 export class HealthChip extends UpgradeChip {
   override type = ChipType.CHIP_HEALTH;
