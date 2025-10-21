@@ -21,6 +21,16 @@ declare global {
   }
 }
 
+enum Phase {
+  NONE,
+  EVENT,
+  INCOME,
+  MARKET,
+  BUILD,
+  PREP,
+  ONSLAUGHT
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -63,6 +73,12 @@ export class GameService {
     this.createScenario1();
   }
 
+  status = "";
+  amountWaves = 3;
+  currentRound = 0;
+  currentPhase = Phase.EVENT;
+  //TODO: add log
+
   //TODO: build this into a state machine? or should this be the main game loop? run after scenario creation
   //  how do we deal with user choices
   roundOrder() {
@@ -82,6 +98,20 @@ export class GameService {
     // - build ai deployment stack according to scenario. if any unit not in the barracks, skip that unit
     // - allow user to buy & build deployment stack with given cp costs
     //TODO: onslaught phase
+    switch (this.currentPhase) {
+      case Phase.EVENT:
+        this.handleEventPhase();
+        this.goToPhase(Phase.INCOME);
+        break;
+      default:
+        console.error(`No logic for phase ${Phase[this.currentPhase]} (${this.currentPhase})`);
+        break;
+    }
+  }
+
+  goToPhase(phase: Phase) {
+    console.log(`Go to Phase ${Phase[phase]} (${phase})`);
+    this.currentPhase = phase;
   }
 
   // Events
@@ -225,6 +255,20 @@ export class GameService {
     // general game setup
     this.placeLandmarks();
     //TODO: special scenario setup (roll d6)
+  }
+
+  handleEventPhase() {
+    switch (this.currentRound) {
+      case 1:
+        // nothing
+        break;
+      case 2:
+      case 3:
+        //TODO: roll event die
+        break;
+      default:
+        console.error(`Invalid round: ${this.currentRound}`);
+    }
   }
 
   // places landmarks on the remaining source spots
